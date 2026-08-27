@@ -1,4 +1,5 @@
 import { isSpecificRequirement, type Exercise, type EquipmentRequirement } from '../types/exercise'
+import type { EquipmentData } from '../types/equipment'
 
 export type Selection = Record<string, string[]>
 
@@ -48,6 +49,17 @@ export const filterExercises = (
 export const allTargets = (exercises: Exercise[]): string[] =>
   [...new Set(exercises.flatMap((exercise) => exercise.targetMuscles))].sort()
 
+export interface RequirementStatus {
+  /** e.g. "Suspension Trainer @ Mid Height" */
+  label: string
+  /** Whether the user declared something that satisfies this requirement. */
+  satisfied: boolean
+  /** Which of the user's items covers it, for the "(has: Pillow)" hint. */
+  satisfiedBy?: string
+  optional: boolean
+  note?: string
+}
+
 export interface MissingEquipmentSummary {
   categoryId: string
   unlockedCount: number
@@ -84,4 +96,51 @@ export const missingEquipmentOpportunities = (
       exercises: list,
     }))
     .sort((a, b) => b.unlockedCount - a.unlockedCount)
+}
+
+/**
+ * Describes each piece of equipment an exercise needs, and whether the user has
+ * it, for the sequence screen's per-exercise detail.
+ */
+export const describeRequirements = (
+  exercise: Exercise,
+  selection: Selection,
+  data: EquipmentData,
+): RequirementStatus[] => {
+  const categoryName = (categoryId: string) =>
+    data.categories.find((category) => category.id === categoryId)?.name ?? categoryId
+  const itemName = (equipmentId: string) =>
+    data.equipment.find((item) => item.id === equipmentId)?.name ?? equipmentId
+  const configName = (categoryId: string, configurationId: string) => {
+    const owner = data.equipment.find(
+      (item) => item.category === categoryId && item.configurations?.length,
+    )
+    return owner?.configurations?.find((c) => c.id === configurationId)?.name ?? configurationId
+  }
+
+  const describe = (requirement: EquipmentRequirement, optional: boolean): RequirementStatus => {
+    const satisfied = meetsRequirement(requirement, selection)
+    const base = isSpecificRequirement(requirement)
+      ? itemName(requirement.equipmentId)
+      : categoryName(requirement.categoryId)
+    const label = requirement.configurationId
+      ? `${base} @ ${configName(requirement.categoryId, requirement.configurationId)}`
+      : base
+
+    // For a category requirement, name the item the user actually has.
+    const owned = selection[requirement.categoryId]?.[0]
+    return {
+      label,
+      satisfied,
+      satisfiedBy:
+        satisfied && !isSpecificRequirement(requirement) && owned ? itemName(owned) : undefined,
+      optional,
+      note: requirement.note,
+    }
+  }
+
+  return [
+    ...exercise.requiredEquipment.map((requirement) => describe(requirement, false)),
+    ...(exercise.optionalEquipment ?? []).map((requirement) => describe(requirement, true)),
+  ]
 }

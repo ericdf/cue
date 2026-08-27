@@ -7,9 +7,9 @@
       "selectType": "checkbox"
     },
     {
-      "id": "handheld-weight-8lbs",
-      "name": "8 lb Handheld Weight",
-      "description": "Dumbbell, medicine ball, or household item",
+      "id": "handheld-weight",
+      "name": "Handheld Weight",
+      "description": "Dumbbell, kettlebell, medicine ball, or a household substitute",
       "selectType": "checkbox"
     },
     {
@@ -61,31 +61,31 @@
       "selectType": "single"
     },
     {
-      "id": "dumbbell-8",
-      "name": "Dumbbell (8 lbs)",
-      "category": "handheld-weight-8lbs",
-      "description": "Standard handheld weight",
+      "id": "dumbbell",
+      "name": "Dumbbell",
+      "category": "handheld-weight",
+      "description": "Any weight you can press overhead with control",
       "selectType": "single"
     },
     {
-      "id": "medicine-ball-8",
-      "name": "Medicine Ball (8 lbs)",
-      "category": "handheld-weight-8lbs",
+      "id": "medicine-ball",
+      "name": "Medicine Ball",
+      "category": "handheld-weight",
       "description": "Easier to hold overhead than a dumbbell",
       "selectType": "single"
     },
     {
-      "id": "kettlebell-8",
-      "name": "Kettlebell (8 lbs)",
-      "category": "handheld-weight-8lbs",
+      "id": "kettlebell",
+      "name": "Kettlebell",
+      "category": "handheld-weight",
       "description": "Offset handle changes the grip demand",
       "selectType": "single"
     },
     {
-      "id": "laundry-jug",
-      "name": "Jug of Laundry Detergent or Water (8 lb equivalent)",
-      "category": "handheld-weight-8lbs",
-      "description": "Household substitute for a handheld weight",
+      "id": "household-weight",
+      "name": "Household Weight (jug, bottle)",
+      "category": "handheld-weight",
+      "description": "A detergent jug or water bottle works fine",
       "selectType": "single"
     },
     {

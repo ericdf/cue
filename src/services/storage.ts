@@ -21,8 +21,34 @@ const safeWrite = (key: string, value: unknown): void => {
   }
 }
 
-export const loadSelectedEquipment = (): Record<string, string[]> =>
-  safeRead<Record<string, string[]>>(EQUIPMENT_KEY, {})
+/**
+ * Equipment ids and the handheld-weight category were renamed when the 8 lb
+ * assumption was dropped. Anyone who selected equipment before that has stale
+ * ids in localStorage, so map them forward on read.
+ */
+const ID_MIGRATIONS: Record<string, string> = {
+  'dumbbell-8': 'dumbbell',
+  'medicine-ball-8': 'medicine-ball',
+  'kettlebell-8': 'kettlebell',
+  'laundry-jug': 'household-weight',
+}
+const CATEGORY_MIGRATIONS: Record<string, string> = {
+  'handheld-weight-8lbs': 'handheld-weight',
+}
+
+export const loadSelectedEquipment = (): Record<string, string[]> => {
+  const stored = safeRead<Record<string, string[]>>(EQUIPMENT_KEY, {})
+  const migrated: Record<string, string[]> = {}
+
+  for (const [categoryId, items] of Object.entries(stored)) {
+    const category = CATEGORY_MIGRATIONS[categoryId] ?? categoryId
+    const mapped = items.map((id) => ID_MIGRATIONS[id] ?? id)
+    // A category may appear under both its old and new name; merge them.
+    migrated[category] = [...new Set([...(migrated[category] ?? []), ...mapped])]
+  }
+
+  return migrated
+}
 
 export const saveSelectedEquipment = (selection: Record<string, string[]>): void =>
   safeWrite(EQUIPMENT_KEY, selection)

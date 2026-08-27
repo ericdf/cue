@@ -1,8 +1,16 @@
 import { useWorkoutState } from '../../hooks/useWorkoutState'
 import { describePrescription } from '../../types/exercise'
+import { describeRequirements } from '../../services/exerciseFilter'
 
 export const SequenceOptimizer = () => {
-  const { sequence, exerciseById, reorderSequence, goToPhase } = useWorkoutState()
+  const {
+    sequence,
+    exerciseById,
+    reorderSequence,
+    goToPhase,
+    equipmentData,
+    equipmentSelected,
+  } = useWorkoutState()
 
   const transitionCount = sequence.filter((entry) => entry.transitionNote).length
 
@@ -22,11 +30,26 @@ export const SequenceOptimizer = () => {
         {sequence.map((entry, index) => {
           const exercise = exerciseById(entry.exerciseId)
           if (!exercise) return null
+          const requirements = equipmentData
+            ? describeRequirements(exercise, equipmentSelected, equipmentData)
+            : []
+
           return (
             <li key={entry.exerciseId} className="sequence__item">
-              {entry.transitionNote && (
-                <p className="sequence__transition">{entry.transitionNote}</p>
+              {/* The transition belongs to the gap before this exercise. */}
+              {entry.transitionNote ? (
+                <p className="sequence__transition">
+                  <span aria-hidden="true">⚠ </span>
+                  {entry.transitionNote}
+                </p>
+              ) : (
+                index > 0 && (
+                  <p className="sequence__no-change">
+                    <span aria-hidden="true">✓ </span>No change needed
+                  </p>
+                )
               )}
+
               <div className="sequence__row">
                 <span className="sequence__index">{index + 1}</span>
                 <div className="sequence__details">
@@ -35,6 +58,30 @@ export const SequenceOptimizer = () => {
                     {describePrescription({ ...exercise.instructions, reps: entry.reps })}
                     {entry.sets > 1 && ` · ${entry.sets} sets`}
                   </span>
+                  {requirements.length > 0 && (
+                    <ul className="sequence__equipment">
+                      {requirements.map((requirement) => (
+                        <li
+                          key={`${requirement.label}-${requirement.optional}`}
+                          className={`sequence__equipment-item${
+                            requirement.satisfied ? '' : ' is-missing'
+                          }`}
+                        >
+                          <span aria-hidden="true">{requirement.satisfied ? '✓' : '!'}</span>
+                          <span>
+                            {requirement.label}
+                            {requirement.optional && ' (optional)'}
+                            {requirement.satisfiedBy && (
+                              <span className="sequence__equipment-has">
+                                {' '}
+                                — you have {requirement.satisfiedBy}
+                              </span>
+                            )}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
                 <div className="sequence__controls">
                   <button

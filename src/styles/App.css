@@ -1002,3 +1002,49 @@ body {
   font-size: 0.83rem;
   color: var(--text-muted);
 }
+
+/* --- Sequence: per-exercise equipment detail ----------------------------- */
+
+.sequence__no-change {
+  margin: 0 0 0.5rem;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.sequence__equipment {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.sequence__equipment-item {
+  display: flex;
+  gap: 0.4rem;
+  align-items: baseline;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.sequence__equipment-item > span:first-child {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.sequence__equipment-item.is-missing > span:first-child {
+  color: var(--warn);
+}
+
+.sequence__equipment-has {
+  opacity: 0.75;
+}
+
+.sequence__row {
+  align-items: flex-start;
+}
+
+.sequence__index {
+  margin-top: 0.1rem;
+}
