@@ -1,5 +1,7 @@
 import { WorkoutProvider, useWorkoutState } from './hooks/useWorkoutState'
+import { TemplateLoader } from './components/PreWorkout/TemplateLoader'
 import { EquipmentSelector } from './components/PreWorkout/EquipmentSelector'
+import { RepSetsCustomizer } from './components/PreWorkout/RepSetsCustomizer'
 import { TargetSelector } from './components/PreWorkout/TargetSelector'
 import { ExerciseRecommender } from './components/PreWorkout/ExerciseRecommender'
 import { SequenceOptimizer } from './components/PreWorkout/SequenceOptimizer'
@@ -27,12 +29,16 @@ const Router = () => {
   }
 
   switch (phase) {
+    case 'start':
+      return <TemplateLoader />
     case 'equipment':
       return <EquipmentSelector />
     case 'targets':
       return <TargetSelector />
     case 'exercises':
       return <ExerciseRecommender />
+    case 'customize':
+      return <RepSetsCustomizer />
     case 'sequence':
       return <SequenceOptimizer />
     case 'workout':

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Exercise } from '../../types/exercise'
+import { describePrescription, type Exercise } from '../../types/exercise'
 import type { EquipmentData } from '../../types/equipment'
 import { asset } from '../../services/dataLoader'
 
@@ -46,10 +46,7 @@ export const ExerciseCard = ({ exercise, equipmentData, selected, onToggle, comp
         </ul>
         {!compact && (
           <p className="exercise-card__meta">
-            {exercise.instructions.reps ??
-              (exercise.instructions.durationSeconds
-                ? `${exercise.instructions.durationSeconds}-second hold`
-                : '')}
+            {describePrescription(exercise.instructions)}
             {exercise.requiredEquipment.length > 0 && (
               <>
                 {' · '}

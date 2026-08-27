@@ -4,7 +4,7 @@ import { useVoiceRecognition } from '../../hooks/useVoiceRecognition'
 import { useVoiceSynthesis } from '../../hooks/useVoiceSynthesis'
 import { useWakeLock } from '../../hooks/useWakeLock'
 import { useCountdown } from '../../hooks/useCountdown'
-import { isTimedExercise } from '../../types/exercise'
+import { describePrescription, isTimedExercise } from '../../types/exercise'
 import type { VoiceCommandName } from '../../types/workout'
 import { ExerciseSetup } from './ExerciseSetup'
 import { RepCounter } from './RepCounter'
@@ -13,16 +13,23 @@ import { VoiceOutput } from '../Common/VoiceOutput'
 import { WakeLockNotice } from '../Common/WakeLockNotice'
 
 /** Stages within a single exercise. */
-type Stage = 'transition' | 'setup' | 'work' | 'rest'
+type Stage = 'transition' | 'setup' | 'work' | 'rest' | 'set-rest'
 
 const REST_SECONDS = 30
+const SET_REST_SECONDS = 30
 const TRANSITION_SECONDS = 30
 /** Marks at which a countdown speaks the remaining time. */
 const ANNOUNCE_MARKS = [20, 10, 5]
 
 export const VoiceController = () => {
-  const { currentExercise, currentEntry, currentExerciseIndex, sequence, completeCurrent } =
-    useWorkoutState()
+  const {
+    currentExercise,
+    currentEntry,
+    currentExerciseIndex,
+    sequence,
+    completeCurrent,
+    completeSet,
+  } = useWorkoutState()
 
   const [stage, setStage] = useState<Stage>('setup')
   // A timed hold runs on wall time once the opening announcement finishes; the
@@ -56,15 +63,35 @@ export const VoiceController = () => {
     [cancel, completeCurrent],
   )
 
+  /**
+   * One set is done. Rest and repeat while sets remain; otherwise finish the
+   * exercise and move on.
+   */
   const finishWork = useCallback(async () => {
     setHoldRunning(false)
+    if (!currentEntry) return
+
+    const setsDone = currentEntry.setsCompleted + 1
+    completeSet()
+
+    if (setsDone < currentEntry.sets) {
+      setStage('set-rest')
+      return
+    }
+
     if (isLast) {
       await say('That was your last exercise. Nice work.')
       advance('completed')
       return
     }
     setStage('rest')
-  }, [isLast, say, advance])
+  }, [currentEntry, completeSet, isLast, say, advance])
+
+  /** Skip any sets still owed and move to the next exercise. */
+  const skipRemainingSets = useCallback(() => {
+    setHoldRunning(false)
+    advance('completed')
+  }, [advance])
 
   // --- Stage entry: announce transition, then setup instructions. -----------
   useEffect(() => {
@@ -102,17 +129,25 @@ export const VoiceController = () => {
     if (!currentExercise) return
     setStage('work')
     setHoldRunning(false)
+    const setNumber = (currentEntry?.setsCompleted ?? 0) + 1
+    const totalSets = currentEntry?.sets ?? 1
+    const setPrefix = totalSets > 1 ? `Set ${setNumber} of ${totalSets}. ` : ''
+
     if (isTimedExercise(currentExercise)) {
       await say(
-        `${currentExercise.instructions.durationSeconds} second hold. Starting now.`,
+        `${setPrefix}${currentExercise.instructions.durationSeconds} second hold. Starting now.`,
       )
       setHoldRunning(true)
     } else {
+      const prescription = describePrescription({
+        ...currentExercise.instructions,
+        reps: currentEntry?.reps,
+      })
       await say(
-        `${currentExercise.name}: ${currentExercise.instructions.reps}. Start when ready. Say done when you finish.`,
+        `${setPrefix}${currentExercise.name}: ${prescription}. Start when ready. Say done when you finish.`,
       )
     }
-  }, [currentExercise, say])
+  }, [currentExercise, currentEntry, say])
 
   // --- Timers ---------------------------------------------------------------
   const transitionRemaining = useCountdown(TRANSITION_SECONDS, stage === 'transition' && !speaking, {
@@ -136,19 +171,40 @@ export const VoiceController = () => {
     },
   )
 
+  const setRestRemaining = useCountdown(SET_REST_SECONDS, stage === 'set-rest', {
+    announceAt: [10],
+    onAnnounce: (remaining) => void say(`${remaining} seconds.`),
+    onComplete: () => void beginWork(),
+  })
+
   const restRemaining = useCountdown(REST_SECONDS, stage === 'rest', {
     announceAt: [10],
     onAnnounce: (remaining) => void say(`${remaining} seconds.`),
     onComplete: () => advance('completed'),
   })
 
-  // Announce the rest period once when it starts.
+  // Announce each rest period once when it starts.
   useEffect(() => {
     if (stage !== 'rest') return
     void say(`${REST_SECONDS} second rest. You're doing great.`)
   }, [stage, say])
 
+  useEffect(() => {
+    if (stage !== 'set-rest' || !currentEntry) return
+    const remainingSets = currentEntry.sets - currentEntry.setsCompleted
+    void say(
+      `Set complete. ${SET_REST_SECONDS} second rest, then ${remainingSets} more set${
+        remainingSets === 1 ? '' : 's'
+      }.`,
+    )
+  }, [stage, currentEntry, say])
+
   // --- Voice commands -------------------------------------------------------
+  /**
+   * Commands are interpreted against the current stage, per spec 2.5. Notably
+   * "skip" during setup means "I know this one, get to the reps" — it only
+   * abandons the exercise once the work has started.
+   */
   const handleCommand = useCallback(
     (command: VoiceCommandName) => {
       switch (command) {
@@ -157,6 +213,7 @@ export const VoiceController = () => {
           if (stage === 'transition') void beginSetup()
           else if (stage === 'setup') void beginWork()
           else if (stage === 'work') void finishWork()
+          else if (stage === 'set-rest') void beginWork()
           else if (stage === 'rest') advance('completed')
           break
         case 'repeat':
@@ -169,17 +226,33 @@ export const VoiceController = () => {
         case 'done':
           if (stage === 'work') void finishWork()
           else if (stage === 'setup') void beginWork()
+          else if (stage === 'set-rest') void beginWork()
           break
         case 'skip':
-          if (stage === 'rest') advance('completed')
-          else advance('skipped')
+          // During setup: jump to the reps rather than losing the exercise.
+          if (stage === 'setup' || stage === 'transition') void beginWork()
+          // Mid-exercise or between sets: drop any sets still owed.
+          else if (stage === 'work') advance('skipped')
+          else if (stage === 'set-rest') skipRemainingSets()
+          else if (stage === 'rest') advance('completed')
           break
         case 'pause':
           cancel()
           break
       }
     },
-    [stage, beginSetup, beginWork, finishWork, advance, currentExercise, say, spokenText, cancel],
+    [
+      stage,
+      beginSetup,
+      beginWork,
+      finishWork,
+      advance,
+      skipRemainingSets,
+      currentExercise,
+      say,
+      spokenText,
+      cancel,
+    ],
   )
 
   // Only listen while we're silent — the app must never hear its own voice.
@@ -203,6 +276,15 @@ export const VoiceController = () => {
             label="until setup instructions"
           />
         </div>
+      ) : stage === 'set-rest' ? (
+        <div className="workout-rest">
+          <h2 className="workout-rest__title">Set complete</h2>
+          <TimerDisplay
+            secondsRemaining={setRestRemaining}
+            totalSeconds={SET_REST_SECONDS}
+            label={`until set ${currentEntry.setsCompleted + 1} of ${currentEntry.sets}`}
+          />
+        </div>
       ) : stage === 'rest' ? (
         <div className="workout-rest">
           <h2 className="workout-rest__title">Rest</h2>
@@ -218,6 +300,9 @@ export const VoiceController = () => {
             exercise={currentExercise}
             position={currentExerciseIndex}
             total={sequence.length}
+            reps={currentEntry.reps}
+            set={currentEntry.setsCompleted + 1}
+            sets={currentEntry.sets}
           />
           {stage === 'work' &&
             (timed ? (
@@ -228,7 +313,12 @@ export const VoiceController = () => {
               />
             ) : (
               <RepCounter
-                reps={currentExercise.instructions.reps ?? ''}
+                prescription={describePrescription({
+                  ...currentExercise.instructions,
+                  reps: currentEntry.reps,
+                })}
+                set={currentEntry.setsCompleted + 1}
+                sets={currentEntry.sets}
                 onDone={() => void finishWork()}
               />
             ))}
@@ -258,6 +348,9 @@ export const VoiceController = () => {
             </button>
           </>
         )}
+        {/* During setup "skip" means "go straight to the reps", so the button
+            that abandons the exercise is labelled explicitly to avoid clashing
+            with the voice command's meaning. */}
         {stage === 'transition' && (
           <button
             type="button"
@@ -278,13 +371,25 @@ export const VoiceController = () => {
             Skip rest
           </button>
         )}
-        <button
-          type="button"
-          className="button button--ghost"
-          onClick={() => handleCommand('skip')}
-        >
-          Skip exercise
-        </button>
+        {stage === 'set-rest' && (
+          <>
+            <button type="button" className="button" onClick={() => handleCommand('next')}>
+              Next set
+            </button>
+            <button type="button" className="button" onClick={skipRemainingSets}>
+              Skip remaining sets
+            </button>
+          </>
+        )}
+        {stage !== 'set-rest' && (
+          <button
+            type="button"
+            className="button button--ghost"
+            onClick={() => advance('skipped')}
+          >
+            {stage === 'setup' ? 'Skip this exercise entirely' : 'Skip exercise'}
+          </button>
+        )}
       </div>
     </section>
   )

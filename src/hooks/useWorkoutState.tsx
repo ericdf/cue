@@ -6,6 +6,8 @@ import type { ExerciseStatus, Phase, SequenceEntry, WorkoutFeedback } from '../t
 import { loadAll } from '../services/dataLoader'
 import { appendHistory, loadSelectedEquipment, saveSelectedEquipment } from '../services/storage'
 import { optimizeSequence, transitionNote } from '../services/sequenceOptimizer'
+import { listTemplates, saveTemplate } from '../services/templateManager'
+import type { WorkoutTemplate } from '../types/template'
 
 interface WorkoutContextValue {
   loading: boolean
@@ -28,10 +30,19 @@ interface WorkoutContextValue {
   sequence: SequenceEntry[]
   buildSequence: () => void
   reorderSequence: (from: number, to: number) => void
+  customizeEntry: (exerciseId: string, changes: { reps?: number; sets?: number }) => void
+
+  templates: WorkoutTemplate[]
+  refreshTemplates: () => void
+  applyTemplate: (template: WorkoutTemplate) => void
+  saveCurrentAsTemplate: (name: string, notes?: string) => void
+  savedTemplateName: string | null
 
   currentExerciseIndex: number
   currentEntry: SequenceEntry | null
   currentExercise: Exercise | null
+  /** Advance one set; completes the exercise when the last set is done. */
+  completeSet: () => void
   exerciseById: (id: string) => Exercise | undefined
 
   startTime: number | null
@@ -51,7 +62,13 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
   const [equipmentData, setEquipmentData] = useState<EquipmentData | null>(null)
   const [exercises, setExercises] = useState<Exercise[]>([])
 
-  const [phase, setPhase] = useState<Phase>('equipment')
+  // With no saved templates there is nothing to choose between, so go straight
+  // to equipment selection.
+  const [phase, setPhase] = useState<Phase>(() =>
+    listTemplates().length > 0 ? 'start' : 'equipment',
+  )
+  const [templates, setTemplates] = useState<WorkoutTemplate[]>(() => listTemplates())
+  const [savedTemplateName, setSavedTemplateName] = useState<string | null>(null)
   const [equipmentSelected, setEquipmentSelected] = useState<Record<string, string[]>>(() =>
     loadSelectedEquipment(),
   )
@@ -114,13 +131,20 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
 
   /** Annotate an ordered exercise list with the gear change before each entry. */
   const toEntries = useCallback(
-    (ordered: Exercise[], data: EquipmentData): SequenceEntry[] =>
-      ordered.map((exercise, index) => ({
-        exerciseId: exercise.id,
-        position: index,
-        status: 'pending' as const,
-        transitionNote: transitionNote(ordered[index - 1], exercise, data) ?? undefined,
-      })),
+    (ordered: Exercise[], data: EquipmentData, previous: SequenceEntry[] = []): SequenceEntry[] =>
+      ordered.map((exercise, index) => {
+        // Preserve any numbers the user already customized for this exercise.
+        const existing = previous.find((entry) => entry.exerciseId === exercise.id)
+        return {
+          exerciseId: exercise.id,
+          position: index,
+          status: 'pending' as const,
+          transitionNote: transitionNote(ordered[index - 1], exercise, data) ?? undefined,
+          reps: existing?.reps ?? exercise.instructions.reps,
+          sets: existing?.sets ?? exercise.instructions.sets ?? 2,
+          setsCompleted: 0,
+        }
+      }),
     [],
   )
 
@@ -130,7 +154,7 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
       .map((id) => exercises.find((exercise) => exercise.id === id))
       .filter((exercise): exercise is Exercise => Boolean(exercise))
     const ordered = optimizeSequence(chosen, equipmentData)
-    setSequence(toEntries(ordered, equipmentData))
+    setSequence((previous) => toEntries(ordered, equipmentData, previous))
   }, [equipmentData, exercises, selectedExerciseIds, toEntries])
 
   const reorderSequence = useCallback(
@@ -145,10 +169,64 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
         const asExercises = reordered
           .map((entry) => exercises.find((exercise) => exercise.id === entry.exerciseId))
           .filter((exercise): exercise is Exercise => Boolean(exercise))
-        return toEntries(asExercises, equipmentData)
+        return toEntries(asExercises, equipmentData, previous)
       })
     },
     [equipmentData, exercises, toEntries],
+  )
+
+  const customizeEntry = useCallback(
+    (exerciseId: string, changes: { reps?: number; sets?: number }) => {
+      setSequence((previous) =>
+        previous.map((entry) =>
+          entry.exerciseId === exerciseId
+            ? {
+                ...entry,
+                // Clamp so the workout can never be zero-length or absurd.
+                ...(changes.reps !== undefined
+                  ? { reps: Math.max(1, Math.min(99, changes.reps)) }
+                  : {}),
+                ...(changes.sets !== undefined
+                  ? { sets: Math.max(1, Math.min(10, changes.sets)) }
+                  : {}),
+              }
+            : entry,
+        ),
+      )
+    },
+    [],
+  )
+
+  const refreshTemplates = useCallback(() => setTemplates(listTemplates()), [])
+
+  /** Load a saved template: its exercises and the numbers saved with them. */
+  const applyTemplate = useCallback(
+    (template: WorkoutTemplate) => {
+      if (!equipmentData) return
+      const ordered = template.exercises
+        .map((item) => exercises.find((exercise) => exercise.id === item.exerciseId))
+        .filter((exercise): exercise is Exercise => Boolean(exercise))
+
+      setSelectedExerciseIds(ordered.map((exercise) => exercise.id))
+      // Keep the template's saved order rather than re-optimizing it.
+      setSequence(
+        ordered.map((exercise, index) => {
+          const saved = template.exercises.find((item) => item.exerciseId === exercise.id)
+          return {
+            exerciseId: exercise.id,
+            position: index,
+            status: 'pending' as const,
+            transitionNote:
+              transitionNote(ordered[index - 1], exercise, equipmentData) ?? undefined,
+            reps: saved?.reps ?? exercise.instructions.reps,
+            sets: saved?.sets ?? exercise.instructions.sets ?? 2,
+            setsCompleted: 0,
+          }
+        }),
+      )
+      setPhase('customize')
+    },
+    [equipmentData, exercises],
   )
 
   const startWorkout = useCallback(() => {
@@ -158,6 +236,7 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
       previous.map((entry, index) => ({
         ...entry,
         status: index === 0 ? 'in-progress' : 'pending',
+        setsCompleted: 0,
       })),
     )
     setPhase('workout')
@@ -190,6 +269,40 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
     [currentExerciseIndex, sequence.length, finishWorkout],
   )
 
+  /**
+   * Marks one set done. Returns the exercise to the caller unchanged until the
+   * final set, at which point the exercise itself completes.
+   */
+  const completeSet = useCallback(() => {
+    setSequence((previous) =>
+      previous.map((entry, index) =>
+        index === currentExerciseIndex
+          ? { ...entry, setsCompleted: entry.setsCompleted + 1 }
+          : entry,
+      ),
+    )
+  }, [currentExerciseIndex])
+
+  const saveCurrentAsTemplate = useCallback(
+    (name: string, notes?: string) => {
+      const saved = saveTemplate(
+        {
+          name,
+          notes,
+          exercises: sequence.map((entry) => ({
+            exerciseId: entry.exerciseId,
+            reps: entry.reps,
+            sets: entry.sets,
+          })),
+        },
+        Date.now(),
+      )
+      setTemplates(listTemplates())
+      setSavedTemplateName(saved.name)
+    },
+    [sequence],
+  )
+
   const submitFeedback = useCallback(
     (partial: Omit<WorkoutFeedback, 'completedAt'>) => {
       const completedAt = Date.now()
@@ -218,7 +331,10 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
     setCurrentExerciseIndex(0)
     setStartTime(null)
     setFeedback(undefined)
-    setPhase('equipment')
+    setSavedTemplateName(null)
+    const saved = listTemplates()
+    setTemplates(saved)
+    setPhase(saved.length > 0 ? 'start' : 'equipment')
   }, [])
 
   const value = useMemo<WorkoutContextValue>(
@@ -238,9 +354,16 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
       sequence,
       buildSequence,
       reorderSequence,
+      customizeEntry,
+      templates,
+      refreshTemplates,
+      applyTemplate,
+      saveCurrentAsTemplate,
+      savedTemplateName,
       currentExerciseIndex,
       currentEntry,
       currentExercise,
+      completeSet,
       exerciseById,
       startTime,
       startWorkout,
@@ -265,9 +388,16 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
       sequence,
       buildSequence,
       reorderSequence,
+      customizeEntry,
+      templates,
+      refreshTemplates,
+      applyTemplate,
+      saveCurrentAsTemplate,
+      savedTemplateName,
       currentExerciseIndex,
       currentEntry,
       currentExercise,
+      completeSet,
       exerciseById,
       startTime,
       startWorkout,

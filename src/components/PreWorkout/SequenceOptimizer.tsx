@@ -1,4 +1,5 @@
 import { useWorkoutState } from '../../hooks/useWorkoutState'
+import { describePrescription } from '../../types/exercise'
 
 export const SequenceOptimizer = () => {
   const { sequence, exerciseById, reorderSequence, goToPhase, startWorkout } = useWorkoutState()
@@ -31,8 +32,8 @@ export const SequenceOptimizer = () => {
                 <div className="sequence__details">
                   <span className="sequence__name">{exercise.name}</span>
                   <span className="sequence__meta">
-                    {exercise.instructions.reps ??
-                      `${exercise.instructions.durationSeconds}-second hold`}
+                    {describePrescription({ ...exercise.instructions, reps: entry.reps })}
+                    {entry.sets > 1 && ` · ${entry.sets} sets`}
                   </span>
                 </div>
                 <div className="sequence__controls">
@@ -63,7 +64,7 @@ export const SequenceOptimizer = () => {
 
       <footer className="screen__footer screen__footer--sticky">
         <div className="button-row">
-          <button type="button" className="button" onClick={() => goToPhase('exercises')}>
+          <button type="button" className="button" onClick={() => goToPhase('customize')}>
             Back
           </button>
           <button type="button" className="button button--primary" onClick={startWorkout}>

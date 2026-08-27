@@ -28,7 +28,7 @@ export const ExerciseRecommender = () => {
 
   const handleContinue = () => {
     buildSequence()
-    goToPhase('sequence')
+    goToPhase('customize')
   }
 
   return (

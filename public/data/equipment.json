@@ -54,6 +54,13 @@
       "selectType": "single"
     },
     {
+      "id": "yoga-block",
+      "name": "Yoga Block",
+      "category": "padded-knee-surface",
+      "description": "Also useful as a raised reach target for hinge work",
+      "selectType": "single"
+    },
+    {
       "id": "dumbbell-8",
       "name": "Dumbbell (8 lbs)",
       "category": "handheld-weight-8lbs",

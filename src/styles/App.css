@@ -762,3 +762,136 @@ body {
     animation: none !important;
   }
 }
+
+/* --- Templates ----------------------------------------------------------- */
+
+.template-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.template {
+  width: 100%;
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.template:active {
+  transform: scale(0.99);
+}
+
+.template__name {
+  font-weight: 600;
+  font-size: 1.02rem;
+}
+
+.template__meta {
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+
+.template__exercises,
+.template__notes {
+  font-size: 0.83rem;
+  color: var(--text-muted);
+}
+
+.template__notes {
+  font-style: italic;
+}
+
+/* --- Reps/sets customizer ------------------------------------------------ */
+
+.customize-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.customize-card__heading {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.customize-card__name {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.customize-card__default {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.customize-card__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.customize-card__timed {
+  margin: 0;
+  align-self: center;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.stepper {
+  display: grid;
+  gap: 0.35rem;
+  flex: 1 1 8rem;
+}
+
+.stepper__label {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.stepper__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stepper__value {
+  flex: 1;
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.stepper__suffix {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-left: 0.1rem;
+}
+
+/* --- Sets during the workout --------------------------------------------- */
+
+.workout-exercise__sets {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}

@@ -13,8 +13,12 @@ export interface ExerciseMedia {
 
 export interface ExerciseInstructions {
   text: string
-  /** Present for rep-based exercises, e.g. "6 repetitions on each side". */
-  reps?: string
+  /** Rep count for rep-based exercises; absent on timed holds. */
+  reps?: number
+  /** When true, `reps` is per side and the total work is doubled. */
+  repsPerSide?: boolean
+  /** Default number of sets. The spec starts everyone at two. */
+  sets?: number
   /** Present for timed holds; the app counts these down aloud. */
   durationSeconds?: number
 }
@@ -40,3 +44,17 @@ export interface ExerciseData {
 
 export const isTimedExercise = (exercise: Exercise): boolean =>
   typeof exercise.instructions.durationSeconds === 'number'
+
+/** How an exercise's prescription reads on screen and aloud. */
+export const describePrescription = (
+  instructions: Pick<ExerciseInstructions, 'reps' | 'repsPerSide' | 'durationSeconds'>,
+): string => {
+  if (typeof instructions.durationSeconds === 'number') {
+    return `${instructions.durationSeconds}-second hold`
+  }
+  if (typeof instructions.reps !== 'number') return ''
+  const unit = instructions.reps === 1 ? 'rep' : 'reps'
+  return instructions.repsPerSide
+    ? `${instructions.reps} ${unit} each side`
+    : `${instructions.reps} ${unit}`
+}

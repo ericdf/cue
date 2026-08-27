@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useWorkoutState } from '../../hooks/useWorkoutState'
 import { ExcludedEquipment } from './ExcludedEquipment'
+import { SaveTemplate } from './SaveTemplate'
 
 const formatDuration = (ms: number): string => {
   const totalMinutes = Math.round(ms / 60000)
@@ -88,6 +89,8 @@ export const WorkoutSummary = () => {
           </button>
         </section>
       )}
+
+      <SaveTemplate />
 
       <ExcludedEquipment />
 

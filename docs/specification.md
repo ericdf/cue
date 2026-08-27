@@ -1,21 +1,22 @@
 # Cue: Voice-Driven Workout Companion
-## Complete Technical Specification for Claude Code
+## Complete Technical Specification
 
 ---
 
 ## Executive Summary
 
-**Cue** is a client-side React web app that guides workouts through voice interaction. Users plan workouts via screen (selecting equipment, targets, exercises), then execute via voice commands and listening. Three phases: pre-workout (planning), workout (execution), post-workout (feedback).
+**Cue** is a client-side React web app that guides workouts through a three-phase model:
+- **Phase 1 (Pre-workout):** Screen-based planning — select equipment, targets, exercises, customize reps/sets
+- **Phase 2 (Workout):** Voice-driven execution — setup instructions, rep counting, timing, voice commands
+- **Phase 3 (Post-workout):** Screen-based feedback — summary, rating, excluded equipment, save/load workout templates
 
 **Tech Stack:**
 - React + TypeScript
-- Web Speech API (recognition + synthesis)
-- WakeLock API (prevent screen sleep)
+- Web Speech API (synthesis + recognition, Phase 2 only)
+- WakeLock API (prevent screen sleep during Phase 2)
 - Vite (build)
-- GitHub Pages (hosting)
-- JSON + media files in repo
-
-**Hosting:** GitHub Pages at `https://yourusername.github.io/cue`
+- GitHub Pages (hosting at `https://ericdf.github.io/cue/`)
+- localStorage (equipment selection, saved workout templates)
 
 ---
 
@@ -25,25 +26,27 @@
 User selects available equipment by category.
 
 **Flow:**
-1. Landing page: "What equipment do you have?"
+1. Landing screen: "What equipment do you have today?"
 2. Display all equipment categories from `data/equipment.json`
-3. Each category: multiselect or single-select (user declares what they have)
-4. Save selection to browser localStorage (`equipment-selected`)
+3. Each category: radio (single-select) or checkbox (multi-select) based on schema
+4. User selects items they have
+5. Save to localStorage and state
 
-**Example categories:**
-- `padded-knee-surface` (mat, pillow, towel, block)
-- `handheld-weight-8lbs` (dumbbell, medicine ball, kettlebell, jug)
-- `suspension-trainer` (with sub-configs: floor, mid, high)
-- `stability-ball`
-- `resistance-band` (light, medium, heavy)
+**Example:**
+```
+☐ Mat
+☑ Pillow
+☐ Folded towel
+```
 
 ### 1.2 Target Selection
 User selects workout focus (may be multiple).
 
 **Flow:**
-1. "What's the focus of your workout today?"
+1. Screen: "What's the focus of your workout today?"
 2. Display all target muscle groups / goals from exercises (e.g., "arms," "balance," "core," "endurance")
-3. Multiselect; save to state
+3. Multiselect checkboxes
+4. User taps targets, proceeds
 
 ### 1.3 Exercise Recommendation & Selection
 System presents 3–5 exercises matching targets + available equipment.
@@ -52,134 +55,220 @@ System presents 3–5 exercises matching targets + available equipment.
 1. Filter `exercises.json` by:
    - All required equipment matches user's declared equipment
    - At least one target matches selected focus
-2. Rank by relevance (TBD feedback loop; for MVP: alphabetical or frequency)
-3. Display exercise card with:
+2. Rank by relevance (MVP: alphabetical; future: feedback loop)
+3. Display exercise cards with:
    - Name
-   - Target muscles
+   - Target muscles (tags)
    - Position (standing, floor, etc.)
    - Image (if available)
-   - Brief description
+   - Default reps/sets from schema
 4. User taps to add to workout sequence
-5. User repeats for 3–7 exercises (typical workout load)
+5. Repeat for 3–7 exercises (typical workout load)
 
-### 1.4 Sequence Optimization
+### 1.4 Customize Reps/Sets (Per Exercise)
+After adding each exercise, user can override defaults **on-screen**.
+
+**Flow:**
+1. When exercise added to sequence, display edit UI:
+   ```
+   Bird Dog
+   Default: 6 reps each side
+   [---6---] reps  [---2---] sets
+   ```
+2. User adjusts values via +/- buttons or text input
+3. Value persists for this session only
+4. If user later loads a saved template, can re-adjust for current session
+
+### 1.5 Sequence Optimization
 System optimizes exercise order to minimize setup transitions.
 
 **Algorithm:**
 1. Group exercises by equipment configuration (e.g., "suspension trainer at mid-height")
-2. Compute transition "cost" between groups
+2. Compute transition "cost" between groups (based on `adjustmentCost` in equipment schema)
 3. Reorder to minimize total cost
-4. Display proposed sequence with transition notes (e.g., "Adjust suspension trainer from mid to high")
-5. User can manually reorder or lock in
+4. Display proposed sequence with transition notes:
+   ```
+   [Bird Dog] → [Half-Moon Hinge]     (same floor setup)
+   ⚠ ADJUST SUSPENSION TRAINER MID → HIGH
+   [Suspension Row] → [Suspension Fly]  (same config)
+   ```
+5. User can **manually reorder** by dragging or tapping arrows, or accept proposed order
 
-**Example:**
-```
-[Bird Dog] → [Half-Moon Hinge]     (no transition, both floor)
-[ADJUST SUSPENSION TRAINER MID → HIGH]
-[Suspension Row] → [Suspension Fly]  (same config)
-[ADJUST SUSPENSION TRAINER MID]
-[Single-Leg Paloff Press]            (requires cable/band, no transition)
-```
+### 1.6 Confirmation & Lock-In
+Display final sequence on screen with all customizations.
 
-### 1.5 Confirmation & Lock-In
-Display final sequence on screen. User confirms "Start Workout."
-
-**Save to state:**
-- Selected equipment
-- Target focus
-- Exercise sequence (locked order)
-- Timestamp
+**UI:**
+- List of exercises in order with custom reps/sets
+- "Start Workout" button (large, prominent)
+- Save option (see Phase 3)
 
 ---
 
 ## Phase 2: Workout (Voice-Driven Execution)
 
-### 2.1 Exercise Setup
+### 2.1 Setup Instructions
 For each exercise in sequence:
 
 **Flow:**
-1. Display exercise card (image, name, equipment needed)
-2. Play audio setup instructions (or text-to-speech fallback)
-3. User listens; can say:
-   - "Repeat" → replay audio
-   - "Next" → proceed to rep phase
-   - "Skip" → skip this exercise, move to next
-4. No interaction needed; system waits for voice command (~10 second timeout, then auto-proceeds)
+1. Display exercise card (image, name, equipment needed) — **no interaction needed**
+2. Play setup audio (prerecorded priority, TTS fallback)
+3. User listens passively
+4. User can say:
+   - **"Next"** → proceed to rep/timing phase
+   - **"Repeat"** → replay setup audio
+   - **"Skip"** → skip setup, go straight to reps (inferred: user knows this exercise)
+5. System waits for voice command (~10 second timeout, then auto-proceeds to reps)
 
 **Audio playback:**
-- Priority: prerecorded audio (`media.audio`) 
-- Fallback: text-to-speech (`setup.text`)
-- Pause system output while listening for voice commands
+- Priority: prerecorded audio (`media.audio`)
+- Fallback: text-to-speech of `setup.text`
+- No simultaneous playback (sequential: speak → listen → command → speak)
 
 ### 2.2 Rep Counting & Timing
-Once setup is confirmed, user performs exercise.
 
 **For rep-based exercises:**
 1. System announces: "Bird Dog: 6 reps each side. Start when ready."
-2. User counts aloud; system listens silently (no interruption)
-3. User says "Done" or "Next" when finished
+2. User counts aloud; system listens **silently** (no interruption)
+3. User says **"Done"** when finished (or "Next" to skip early)
 4. System confirms and moves to rest
 
 **For timed holds:**
 1. System announces: "30-second hold. Starting now."
-2. System counts down aloud at intervals (every 10 seconds: "20 seconds left," "10 seconds," "Done")
-3. User can say "Done early" to skip ahead
+2. System counts down aloud at intervals (every 10 sec: "20 seconds left," "10 seconds," "Done")
+3. User can say **"Done"** to finish early or **"Skip"** to skip remainder
 
 **For work/rest intervals:**
 1. System announces: "30 seconds work, 30 seconds rest. Starting work."
 2. Counts interval changes aloud
+3. Auto-proceeds when timer ends
 
-### 2.3 Rest & Recovery
-Between exercises:
+### 2.3 Rest & Recovery Between Exercises
+Between exercises or sets:
 
 **Flow:**
-1. System announces: "30-second rest. You're doing great."
-2. Optional: Play upbeat audio cue
-3. Countdown at intervals (similar to timed holds)
-4. User can say "Skip" to move to next exercise immediately
-5. Auto-proceeds when timer ends
+1. System announces: "30-second rest."
+2. Countdown at intervals (every 10 sec)
+3. User can say **"Skip"** to move to next exercise immediately
+4. Auto-proceeds when timer ends
 
 ### 2.4 Transition Notifications
 When switching equipment configuration:
 
 **Flow:**
 1. Before next exercise, system announces: "Next exercise uses suspension trainer at high height. Adjust now."
-2. User has 30 seconds to reconfigure
-3. System then starts setup audio
+2. User has 30 seconds to reconfigure (optional countdown)
+3. System then starts setup audio for next exercise
+
+### 2.5 Voice Commands (Context-Inferred)
+
+During Phase 2, user can say:
+
+| Command | Context | Behavior |
+|---------|---------|----------|
+| "Next" | During setup | Skip setup, go to reps |
+| "Next" | During reps | Complete this exercise, go to next |
+| "Next" | During rest | Skip rest, start next exercise |
+| "Repeat" | During setup | Replay setup audio |
+| "Done" | During timed hold / reps | Finish early, proceed to rest |
+| "Skip" | During setup | Skip setup, go straight to reps |
+| "Skip" | During exercise/timing | Skip this exercise, go to next |
+| "Skip" | During set | If multi-set, skip remaining sets, go to next exercise |
+
+**System infers intent based on current phase.**
 
 ---
 
-## Phase 3: Post-Workout (Feedback & Discovery)
+## Phase 3: Post-Workout (Screen-Based Feedback)
 
 ### 3.1 Workout Summary
 Display:
-- Exercises completed (with checkmarks)
-- Exercises skipped (with reason if available)
+- List of exercises completed (with checkmarks)
+- Exercises skipped (with reason: "skipped setup," "skipped exercise," "skipped sets")
 - Total workout time
-- Option to rate workout (1–5 stars)
+- Time per exercise
 
-### 3.2 Excluded Equipment Discovery
+### 3.2 Workout Rating
+Simple 1–5 star rating UI.
+
+**Save to state for later analytics (future).**
+
+### 3.3 Excluded Equipment Discovery
 Show exercises that were *not* presented because equipment wasn't available:
 
 **Example:**
 ```
 You don't have these items. Consider adding them to your gym:
-- Medicine Ball (8 lbs) → Unlocks 12 exercises
-- Suspension Trainer → Unlocks 8 exercises
+
+💪 Medicine Ball (8 lbs)     → Unlocks 12 exercises
+  [Add to equipment?]
+
+🪢 Suspension Trainer       → Unlocks 8 exercises
+  [Learn more]
 ```
 
-Tappable to preview exercises.
+User can tap to preview exercises or dismiss.
 
-### 3.3 Feedback Loop (MVP Placeholder)
-- User rates workout
-- Save to localStorage (future: send to analytics or allow download as CSV)
-- Placeholder for future relevance tuning
+### 3.4 Save Workout Template (NEW)
+Post-workout, user can save the workout sequence for later reuse.
+
+**Flow:**
+1. Display "Save this workout?" prompt
+2. User enters name (e.g., "Swimming Dryland - Balance Focus")
+3. Save to localStorage with:
+   - Template name
+   - Exercise list (IDs)
+   - User's reps/sets customizations for each exercise
+   - Timestamp
+   - Optional notes
+4. User can tap "Saved!" to confirm
+
+**Data structure (localStorage):**
+```json
+{
+  "workoutTemplates": {
+    "template-id-1": {
+      "name": "Swimming Dryland - Balance Focus",
+      "exercises": [
+        {
+          "exerciseId": "bird-dog",
+          "reps": 8,
+          "sets": 2
+        },
+        {
+          "exerciseId": "half-moon-hinge",
+          "reps": 6,
+          "sets": 2
+        }
+      ],
+      "createdAt": 1693046400000,
+      "notes": "Great balance work"
+    }
+  }
+}
+```
+
+### 3.5 Load Workout Template (NEW)
+In Phase 1, before equipment/target selection, offer option to load a saved template.
+
+**Flow:**
+1. Early Phase 1 screen: "Start fresh or load a saved workout?"
+2. Display list of saved templates:
+   ```
+   ✅ Swimming Dryland - Balance Focus (saved 2 days ago)
+   ✅ Quick Gym Session (saved 1 week ago)
+   ```
+3. User taps template → loads exercises + previous reps/sets
+4. User can then:
+   - Modify reps/sets for today's session (doesn't change saved template)
+   - Adjust equipment if different today
+   - Proceed to Phase 2
+5. After workout, if user wants to keep changes, must save as **new template** (original stays unchanged)
 
 ---
 
 ## Data Schema
 
-### 2.1 Equipment (`data/equipment.json`)
+### Equipment (`data/equipment.json`)
 
 ```json
 {
@@ -192,79 +281,34 @@ Tappable to preview exercises.
       "selectType": "single"
     },
     {
-      "id": "pillow",
-      "name": "Pillow or Cushion",
-      "category": "padded-knee-surface",
-      "description": "Household alternative to mat",
-      "selectType": "single"
-    },
-    {
       "id": "suspension-trainer",
       "name": "Suspension Trainer (TRX or equivalent)",
       "category": "suspension-trainer",
-      "description": "Adjustable straps for bodyweight exercises",
-      "selectType": "single",
       "configurations": [
         {
           "id": "floor-height",
-          "name": "Floor Height (Straps Nearly Touching Ground)",
+          "name": "Floor Height",
           "adjustmentCost": 2
         },
         {
           "id": "mid-height",
-          "name": "Mid Height (Straps at Waist Level)",
+          "name": "Mid Height",
           "adjustmentCost": 3
-        },
-        {
-          "id": "high-height",
-          "name": "High Height (Straps at Shoulder Level)",
-          "adjustmentCost": 2
         }
       ]
-    },
-    {
-      "id": "dumbbell-8",
-      "name": "Dumbbell (8 lbs)",
-      "category": "handheld-weight-8lbs",
-      "selectType": "single"
-    },
-    {
-      "id": "medicine-ball-8",
-      "name": "Medicine Ball (8 lbs)",
-      "category": "handheld-weight-8lbs",
-      "selectType": "single"
-    },
-    {
-      "id": "laundry-jug",
-      "name": "Jug of Laundry Detergent or Water (8 lbs equivalent)",
-      "category": "handheld-weight-8lbs",
-      "selectType": "single"
     }
   ],
   "categories": [
     {
       "id": "padded-knee-surface",
       "name": "Padded Surface for Floor Work",
-      "description": "Mat, pillow, or equivalent",
       "selectType": "radio"
-    },
-    {
-      "id": "handheld-weight-8lbs",
-      "name": "8 lb Handheld Weight",
-      "description": "Dumbbell, medicine ball, or household item",
-      "selectType": "radio"
-    },
-    {
-      "id": "suspension-trainer",
-      "name": "Suspension Trainer",
-      "description": "TRX or equivalent",
-      "selectType": "checkbox"
     }
   ]
 }
 ```
 
-### 2.2 Exercises (`data/exercises.json`)
+### Exercises (`data/exercises.json`)
 
 ```json
 {
@@ -281,74 +325,19 @@ Tappable to preview exercises.
           "note": "Reduces joint stress"
         }
       ],
-      "optionalEquipment": [],
       "setup": {
         "text": "Start on your hands and knees with your spine in a neutral position."
       },
       "instructions": {
-        "text": "Slowly reach one arm forward while extending the opposite leg behind you. Pause briefly, focusing on keeping your hips level and your torso still. Return to the starting position and repeat on the opposite side.",
-        "reps": "6 repetitions on each side"
+        "text": "Slowly reach one arm forward while extending the opposite leg behind you...",
+        "reps": "6",
+        "repsPerSide": true,
+        "sets": 2
       },
       "cues": "Move slowly and focus on control rather than speed.",
-      "notes": "This exercise challenges your balance and coordination by teaching you to stabilize your core while your limbs work independently.",
+      "notes": "This exercise challenges your balance and coordination...",
       "media": {
         "image": "/images/bird-dog.jpg",
-        "audio": null,
-        "video": null
-      }
-    },
-    {
-      "id": "kneel-stand-medicine",
-      "name": "Kneel to Stand With Medicine Ball",
-      "description": "Balance and streamline stability",
-      "targetMuscles": ["balance", "stability", "strength"],
-      "position": "kneeling-to-standing",
-      "requiredEquipment": [
-        {
-          "categoryId": "handheld-weight-8lbs",
-          "note": "Held overhead"
-        }
-      ],
-      "optionalEquipment": [],
-      "setup": {
-        "text": "Start in a tall kneeling position with a weight held overhead. Keep your arms in line with your ears and your torso straight."
-      },
-      "instructions": {
-        "text": "Step one foot forward into a lunge position, then drive through your front leg to stand. Keep the weight overhead and your upper body steady throughout the movement. Reverse the motion to return to the starting position.",
-        "reps": "6 repetitions on each side"
-      },
-      "cues": "Maintain steady core; don't lean forward.",
-      "notes": "This challenges balance and stability while reinforcing the strength needed to hold a tight streamline.",
-      "media": {
-        "image": "/images/kneel-stand-medicine.jpg",
-        "audio": null,
-        "video": null
-      }
-    },
-    {
-      "id": "stability-ball-plank-rollout",
-      "name": "Stability Ball Plank Rollout",
-      "description": "Core control and body alignment",
-      "targetMuscles": ["core", "stability", "control"],
-      "position": "plank",
-      "requiredEquipment": [
-        {
-          "categoryId": "stability-ball",
-          "note": "Standard size (65 cm)"
-        }
-      ],
-      "optionalEquipment": [],
-      "setup": {
-        "text": "Begin in a plank position with your forearms on a stability ball and your body forming a straight line from head to heel."
-      },
-      "instructions": {
-        "text": "Slowly roll the ball forward by extending your arms, maintaining a rigid torso throughout the movement. Roll out as far as you can while keeping good alignment, then pull the ball back to the starting position.",
-        "reps": "12 repetitions"
-      },
-      "cues": "Keep your core tight; don't let your hips sag or pike.",
-      "notes": "This exercise challenges your ability to resist unwanted movement and helps improve overall body control.",
-      "media": {
-        "image": "/images/stability-ball-plank.jpg",
         "audio": null,
         "video": null
       }
@@ -357,42 +346,22 @@ Tappable to preview exercises.
 }
 ```
 
-### 2.3 Workout State (Runtime)
+### Workout Template (localStorage)
 
-```typescript
-interface WorkoutState {
-  equipmentSelected: Record<string, string[]>; // categoryId → selected equipment IDs
-  targetFocus: string[]; // e.g., ["balance", "core"]
-  exerciseSequence: {
-    exerciseId: string;
-    position: number;
-    status: "pending" | "in-progress" | "completed" | "skipped";
-    completedAt?: number;
-    notes?: string;
-  }[];
-  currentExerciseIndex: number;
-  startTime: number;
-  workoutComplete: boolean;
-  feedback?: {
-    rating: number; // 1–5
-    completedAt: number;
-  };
-}
-```
+See Phase 3.4 above.
 
 ---
 
 ## Technical Architecture
 
-### 3.1 Project Structure
+### Project Structure
 
 ```
 cue/
 ├── README.md                    (maintain production URL at top)
-├── CLAUDE.md                    (Claude Code notes; see section 4.1)
-├── package.json
-├── vite.config.ts
-├── tsconfig.json
+├── CLAUDE.md                    (Claude Code notes)
+├── docs/
+│   └── specification.md         ← You are here
 ├── src/
 │   ├── main.tsx
 │   ├── App.tsx
@@ -401,7 +370,9 @@ cue/
 │   │   │   ├── EquipmentSelector.tsx
 │   │   │   ├── TargetSelector.tsx
 │   │   │   ├── ExerciseRecommender.tsx
-│   │   │   └── SequenceOptimizer.tsx
+│   │   │   ├── RepSetsCustomizer.tsx
+│   │   │   ├── SequenceOptimizer.tsx
+│   │   │   └── TemplateLoader.tsx
 │   │   ├── Workout/
 │   │   │   ├── ExerciseSetup.tsx
 │   │   │   ├── RepCounter.tsx
@@ -409,7 +380,10 @@ cue/
 │   │   │   └── VoiceController.tsx
 │   │   ├── PostWorkout/
 │   │   │   ├── WorkoutSummary.tsx
-│   │   │   └── ExcludedEquipment.tsx
+│   │   │   ├── RatingUI.tsx
+│   │   │   ├── ExcludedEquipment.tsx
+│   │   │   ├── SaveTemplate.tsx
+│   │   │   └── TemplateInfo.tsx
 │   │   └── Common/
 │   │       ├── VoiceOutput.tsx
 │   │       ├── WakeLock.tsx
@@ -420,14 +394,16 @@ cue/
 │   │   ├── useWakeLock.ts
 │   │   └── useWorkoutState.ts
 │   ├── services/
-│   │   ├── dataLoader.ts        (fetch JSON from repo)
+│   │   ├── dataLoader.ts
 │   │   ├── exerciseFilter.ts
 │   │   ├── sequenceOptimizer.ts
-│   │   └── storage.ts           (localStorage)
+│   │   ├── storage.ts
+│   │   └── templateManager.ts
 │   ├── types/
 │   │   ├── equipment.ts
 │   │   ├── exercise.ts
-│   │   └── workout.ts
+│   │   ├── workout.ts
+│   │   └── template.ts
 │   └── styles/
 │       └── App.css
 ├── public/
@@ -436,55 +412,47 @@ cue/
 │   │   └── exercises.json
 │   └── images/
 │       ├── bird-dog.jpg
-│       ├── kneel-stand-medicine.jpg
 │       └── ...
-├── audio/
-│   ├── bird-dog-setup.mp3
-│   └── ... (user-recorded, optional for MVP)
-└── dist/                        (build output, served by GitHub Pages)
+└── vite.config.ts
 ```
 
-### 3.2 GitHub Pages Setup
+### GitHub Pages Setup
 
-**Repository:**
-- `yourusername/cue` (public)
-- GitHub Pages enabled, source: `/dist` (or `/` if using `docs/`)
+- Repository: `ericdf/cue` (public)
+- GitHub Pages: Main branch → `/cue/` subdirectory
+- Production URL: `https://ericdf.github.io/cue/`
 
 **Vite config:**
 ```typescript
 export default {
   base: '/cue/',
   build: {
-    outDir: 'dist',
+    outDir: 'dist'
   }
 }
 ```
 
-**Deploy:**
-```bash
-npm run build
-git add dist/
-git commit -m "Deploy to GitHub Pages"
-git push
-```
-
-**Production URL:** `https://yourusername.github.io/cue`
-
 ---
 
-## Voice Interaction Implementation
+## Voice Interaction (Phase 2 Only)
 
-### 4.1 Speech Recognition
+### Web Speech API
 
-**Use Web Speech API:**
-- `window.webkitSpeechRecognition` (Chrome, Edge, Android)
+**Recognition:**
+- Listen for user commands: "next", "repeat", "done", "skip"
+- Use `window.webkitSpeechRecognition` (Chrome, Edge, Android)
 - Fallback: `window.SpeechRecognition` (Firefox)
-- iOS: Graceful degradation (show on-screen buttons)
+- iOS: Graceful degradation (on-screen button fallbacks)
+
+**Synthesis:**
+1. Prerecorded audio (`media.audio`) preferred
+2. Fallback to Web Speech Synthesis API (`window.speechSynthesis`)
+3. Text-to-speech for setup, instructions, timers, feedback
 
 **Hook: `useVoiceRecognition.ts`**
 ```typescript
 interface VoiceCommand {
-  command: "next" | "repeat" | "done" | "skip" | "start" | string;
+  command: "next" | "repeat" | "done" | "skip";
   confidence: number;
 }
 
@@ -492,46 +460,16 @@ const useVoiceRecognition = (
   onCommand: (cmd: VoiceCommand) => void,
   enabled: boolean
 ) => {
-  // Implement recognition, handle errors, emit commands
+  // Implementation
 }
 ```
 
-**Commands during workout:**
-- "Next" → proceed to next exercise
-- "Repeat" → replay audio
-- "Done" → complete exercise early
-- "Skip" → skip exercise
-- "Start" → begin workout
-- "Pause" → pause (future feature)
-
-### 4.2 Text-to-Speech
-
-**Priority order:**
-1. Prerecorded audio file (if available)
-2. Web Speech Synthesis API (`window.speechSynthesis`)
-3. On-screen text fallback
-
-**Hook: `useVoiceSynthesis.ts`**
-```typescript
-const useVoiceSynthesis = (text: string, options?: SpeechOptions) => {
-  // Speak text; handle pause/cancel
-  // Emit events when started/ended
-}
-```
-
-**Quality settings:**
-- Rate: 0.95 (slightly slower, clearer)
-- Pitch: 1.0
-- Volume: 1.0
-
-### 4.3 Audio Mixing Strategy
-
-**Sequential flow** (avoid simultaneous playback):
-1. Play setup audio (or TTS)
+**Sequential Audio Flow (no simultaneous playback):**
+1. Play setup audio
 2. Pause recognition while speaking
-3. When audio ends, enable recognition
-4. Listen for "next" / "repeat" / "skip"
-5. On command, stop recognition, proceed
+3. Audio ends → enable recognition
+4. Listen for voice command
+5. On command → stop recognition, process, continue
 
 ---
 
@@ -540,298 +478,142 @@ const useVoiceSynthesis = (text: string, options?: SpeechOptions) => {
 **Hook: `useWakeLock.ts`**
 ```typescript
 const useWakeLock = (enabled: boolean) => {
-  // Request WakeLock when workout starts
-  // Release when workout ends
-  // Fallback: warn user to keep screen on
+  // Request WakeLock when Phase 2 starts
+  // Release when Phase 2 ends
+  // Fallback: warn user if unsupported
 }
 ```
 
 **Behavior:**
-- Request WakeLock on "Start Workout"
-- Release on "End Workout" or app exit
-- Catch errors gracefully (some browsers/devices don't support)
+- Request on "Start Workout" (Phase 2 entry)
+- Release on Phase 2 completion
+- Graceful fallback for unsupported browsers
 
 ---
 
-## Sequence Optimization Algorithm
+## Storage
 
-### 5.1 Transition Cost Model
+### localStorage Keys
 
-**Input:** List of exercises with equipment + configuration.
+```
+equipment-selected          → user's declared equipment
+workout-templates          → saved workout templates (JSON)
+workout-history            → (future) workout completions
+feedback-ratings           → (future) workout ratings
+```
 
-**Output:** Reordered sequence minimizing total transition cost.
+### API
 
+**Provide service: `storage.ts`**
 ```typescript
-interface ExerciseWithConfig {
-  exerciseId: string;
-  equipmentConfigs: {
-    equipmentId: string;
-    configurationId?: string; // e.g., "mid-height"
-  }[];
-}
+// Equipment
+const saveEquipment = (equipment: Record<string, string[]>) => {}
+const getEquipment = () => Record<string, string[]>
 
-function optimizeSequence(
-  exercises: ExerciseWithConfig[],
-  equipment: Equipment[]
-): ExerciseWithConfig[] {
-  // 1. Group by (equipment, configuration)
-  // 2. Compute transition cost between groups
-  // 3. Use greedy or brute-force reordering (small N allows brute-force)
-  // 4. Return reordered sequence
-}
-```
-
-**Cost matrix example:**
-```
-Bird Dog (mat) → Half-Moon Hinge (mat): cost 0 (same)
-Half-Moon Hinge (mat) → Suspension Row (suspension, mid): cost 3 (adjust suspension)
-Suspension Row (suspension, mid) → Suspension Fly (suspension, mid): cost 0 (same)
-Suspension Fly (suspension, mid) → Paloff Press (band): cost 2 (remove suspension)
-```
-
----
-
-## Data Ingest Process
-
-### 6.1 PDF → JSON Workflow
-
-**When user sends Eric a PDF with new exercises:**
-
-1. **Claude Code receives PDF**
-2. **Extract exercises:**
-   - Name, setup text, instructions, reps/timing
-   - Analyze images for position, equipment, cushioning needs
-   - Identify target muscle groups from article context
-   - Note equipment explicitly mentioned + implied (e.g., "hands and knees" → mat needed)
-3. **Prompt user to clarify:**
-   - Equipment categories (map to existing categories or create new ones)
-   - Target muscles (multi-select from existing list)
-   - Any substitutes or variations
-4. **Generate JSON entries** and add to `data/exercises.json`
-5. **Instructions to Eric:**
-   - Save extracted images to `public/images/` (filename convention: `{exercise-id}.jpg`)
-   - Record audio setup if desired (save to `audio/{exercise-id}-setup.mp3`)
-   - Commit and push to repo
-
-### 6.2 CLAUDE.md Notes
-
-**Create `CLAUDE.md` in repo root:**
-
-```markdown
-# Cue: Development Notes for Claude Code
-
-## Ingest Workflow
-
-When processing a new PDF with exercises:
-
-1. Extract all exercises with clear text (setup, instructions, reps/timing)
-2. Analyze associated images for:
-   - Position (standing, floor, kneeling, etc.)
-   - Equipment implied by image (mat under knees, cable attachment, etc.)
-   - Muscle groups targeted
-3. Cross-reference with existing equipment.json categories
-4. If new category needed, propose new entry with description
-5. Generate JSON entries conforming to data/exercises.json schema
-6. Provide images and audio guidance to user
-
-## Image Handling
-
-- Extract images from PDF and save as `public/images/{exercise-id}.jpg`
-- Optimize for mobile (compress to ~150KB max)
-- Use descriptive filenames matching exercise IDs
-
-## Audio Setup (Future)
-
-- User records voice guidance for setup (e.g., "Start on your hands and knees...")
-- Save to `audio/{exercise-id}-setup.mp3`
-- App prioritizes prerecorded over TTS
-
-## PR Process
-
-- User can manually edit data/exercises.json or request Claude Code to update
-- Always validate schema before commit
-- Update README.md production URL if changed
-
----
-
-## README.md Template
-
-**Maintain at top of README.md:**
-
-```markdown
-# Cue: Voice-Driven Workout Companion
-
-**Production URL:** https://yourusername.github.io/cue
-
----
-
-[Rest of README...]
+// Templates
+const saveTemplate = (template: WorkoutTemplate) => {}
+const loadTemplate = (templateId: string) => WorkoutTemplate
+const listTemplates = () => WorkoutTemplate[]
+const deleteTemplate = (templateId: string) => {}
 ```
 
 ---
 
 ## Component Checklist for Claude Code
 
-### Pre-Workout
-- [ ] EquipmentSelector: Radio/checkbox UI for equipment categories
-- [ ] TargetSelector: Multiselect for muscle groups / focus areas
+### Phase 1: Pre-Workout (Screen)
+- [ ] EquipmentSelector: Multi-category radio/checkbox selection
+- [ ] TargetSelector: Multiselect for muscle groups
 - [ ] ExerciseRecommender: Filter + display 3–5 exercises
-- [ ] SequenceOptimizer: Reorder exercises, show transitions
-- [ ] Confirmation screen with "Start Workout" button
+- [ ] RepSetsCustomizer: Edit UI for reps/sets per exercise
+- [ ] SequenceOptimizer: Reorder exercises, show transitions, manual drag/reorder
+- [ ] TemplateLoader: Load saved templates, adjust for today
+- [ ] StartWorkoutButton: Confirmation screen with "Start Workout"
 
-### Workout
-- [ ] ExerciseSetup: Display exercise, play setup audio, listen for "next"/"repeat"
-- [ ] RepCounter: User counts aloud; listen for "done" (or manual entry fallback)
-- [ ] TimerDisplay: Countdown for timed holds / rest periods
+### Phase 2: Workout (Voice)
+- [ ] ExerciseSetup: Display exercise, play setup audio, listen for "next"/"repeat"/"skip"
+- [ ] RepCounter: User counts; listen for "done" or auto-timeout
+- [ ] TimerDisplay: Countdown for timed holds / rest, announce intervals
 - [ ] VoiceController: Central voice I/O orchestration
-- [ ] Transition alerts: Announce equipment reconfiguration
+- [ ] TransitionAlerts: Announce equipment reconfigurations
+- [ ] PhaseWakeLock: Prevent screen sleep during Phase 2
 
-### Post-Workout
-- [ ] WorkoutSummary: Exercises completed, time, rating UI
-- [ ] ExcludedEquipment: Show exercises skipped due to missing gear
-- [ ] Feedback form (star rating, optional notes)
+### Phase 3: Post-Workout (Screen)
+- [ ] WorkoutSummary: Exercises completed, skipped, time, per-exercise timing
+- [ ] RatingUI: 1–5 star rating
+- [ ] ExcludedEquipment: Show locked exercises
+- [ ] SaveTemplate: Prompt for template name, save to localStorage
+- [ ] TemplateInfo: Display template details (exercises, reps, date created)
 
 ### Common
 - [ ] VoiceOutput: Play audio or TTS
-- [ ] WakeLock: Request/release screen wake lock
-- [ ] ExerciseCard: Reusable card with image, name, targets
+- [ ] ExerciseCard: Reusable exercise display card
+- [ ] Navigation: Move between phases smoothly
 
 ### Hooks
 - [ ] useVoiceRecognition: Web Speech API wrapper
 - [ ] useVoiceSynthesis: TTS + prerecorded audio fallback
-- [ ] useWakeLock: Screen wake lock request/release
-- [ ] useWorkoutState: Global workout state (Redux-light)
+- [ ] useWakeLock: Screen wake lock control
+- [ ] useWorkoutState: Global workout state
 
 ### Services
-- [ ] dataLoader: Fetch equipment.json and exercises.json from public/
-- [ ] exerciseFilter: Filter exercises by targets + available equipment
+- [ ] dataLoader: Fetch equipment.json, exercises.json
+- [ ] exerciseFilter: Filter by targets + equipment
 - [ ] sequenceOptimizer: Reorder exercises by transition cost
-- [ ] storage: localStorage helpers for equipment selection + workout history
+- [ ] storage: localStorage helpers
+- [ ] templateManager: Save/load/list/delete templates
 
 ### Types
-- [ ] equipment.ts: Equipment, Category, Configuration types
-- [ ] exercise.ts: Exercise, Media, Instructions types
-- [ ] workout.ts: WorkoutState, VoiceCommand types
-
----
-
-## Deployment Checklist
-
-- [ ] Vite config: base path = '/cue/'
-- [ ] GitHub Pages enabled on repo
-- [ ] data/equipment.json and exercises.json in public/
-- [ ] Images in public/images/
-- [ ] npm run build works
-- [ ] dist/ artifacts committed (or auto-deploy via GitHub Actions)
-- [ ] README.md has production URL
-- [ ] Test on mobile browser (iPhone Safari, Android Chrome)
-
----
-
-## Known Limitations (MVP)
-
-- **iOS speech recognition:** Limited; show on-screen buttons as fallback
-- **Audio mixing:** Sequential playback only (no simultaneous)
-- **Substitutions:** Handled via category abstraction, not explicit rules
-- **Analytics:** Feedback stored locally; no server sync
-- **Accessibility:** Voice-first, but on-screen fallbacks provided
-
----
-
-## Future Enhancements
-
-1. **Spaced repetition of excluded exercises** (post-workout discovery)
-2. **Personal records tracking** (reps, times, PRs by exercise)
-3. **Workout templates** (save favorite sequences)
-4. **Social/community exercises** (import shared routines)
-5. **Advanced analytics** (volume, intensity, trends)
-6. **Offline support** (service worker caching)
-7. **Dark mode**
-```
-
----
-
-## Build & Deploy Instructions
-
-### 7.1 Local Setup
-
-```bash
-git clone https://github.com/yourusername/cue.git
-cd cue
-npm install
-npm run dev        # Local dev server on http://localhost:5173
-```
-
-### 7.2 Build & Deploy
-
-```bash
-npm run build       # Creates dist/
-git add dist/
-git commit -m "Deploy v1.0"
-git push origin main
-```
-
-**GitHub Pages will auto-publish to** `https://yourusername.github.io/cue`
-
-### 7.3 GitHub Actions (Optional)
-
-Create `.github/workflows/deploy.yml` to auto-build on push:
-
-```yaml
-name: Deploy to GitHub Pages
-on:
-  push:
-    branches: [main]
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - run: npm install
-      - run: npm run build
-      - uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-```
+- [ ] equipment.ts
+- [ ] exercise.ts
+- [ ] workout.ts
+- [ ] template.ts
 
 ---
 
 ## Testing Checklist
 
-- [ ] Equipment selector: Can select/deselect items, saves to localStorage
-- [ ] Target selector: Multiselect works, filters exercises correctly
-- [ ] Exercise recommender: Displays 3–5 exercises matching targets + equipment
-- [ ] Sequence optimizer: Reorders exercises, shows transitions, allows manual reorder
-- [ ] Setup audio: Plays prerecorded or TTS; "repeat" replays; "next" advances
-- [ ] Rep counter: User speaks; system listens; "done" confirms
-- [ ] Timer: Counts down, announces intervals, can be skipped
-- [ ] Rest periods: Auto-advance or manual skip
-- [ ] Transition alerts: Display and audio announce equipment changes
-- [ ] Post-workout: Summary, excluded equipment, rating UI
-- [ ] WakeLock: Screen doesn't sleep during workout (test on real device)
-- [ ] Mobile UX: Touch targets large enough, text readable during workout
-- [ ] Voice on iOS: Fallback buttons present and functional
-- [ ] Dark mode: Works if implemented
+- [ ] Equipment selector persists to localStorage
+- [ ] Target selector filters exercises correctly
+- [ ] Exercise recommender displays 3–5 matching exercises
+- [ ] Reps/sets customizer updates values
+- [ ] Sequence optimizer minimizes transitions
+- [ ] Manual reordering works (drag or arrows)
+- [ ] Template loader shows saved templates, allows load + modify
+- [ ] Phase 2 start locks screen wake
+- [ ] Setup audio plays (or TTS fallback)
+- [ ] Voice recognition works for "next", "repeat", "skip", "done"
+- [ ] Timers countdown and announce intervals
+- [ ] Transition alerts display before equipment changes
+- [ ] Phase 3 summary shows correct exercises/times
+- [ ] Save template UI prompts for name, saves to localStorage
+- [ ] Load template retrieves exercises + previous customizations
+- [ ] Mobile UX: large touch targets, readable text, voice feedback clear
+- [ ] iOS fallback buttons present for voice (if recognition limited)
 
 ---
 
-## Production URL Maintenance
+## Production Deployment
 
-**Eric:** After deployment, update README.md top line:
+1. Ensure `docs/specification.md` and `CLAUDE.md` in repo
+2. Ensure `public/data/equipment.json` and `public/data/exercises.json` exist
+3. Run `npm run build`
+4. Commit `dist/` and push to main
+5. GitHub Pages auto-deploys to `https://ericdf.github.io/cue/`
 
-```markdown
-# Cue: Voice-Driven Workout Companion
+---
 
-**Production URL:** https://yourusername.github.io/cue
+## Future Enhancements
 
-**Live now!** Start your voice-guided workout.
-```
+1. Workout history analytics (reps, times, PRs)
+2. Spaced repetition of excluded exercises in Phase 3
+3. Custom workout templates with audio cues
+4. Social / community template sharing
+5. Advanced voice recognition (custom models)
+6. Dark mode
+7. Accessibility (larger fonts, high contrast)
+8. Offline support (service worker)
 
 ---
 
 End of Specification
-```

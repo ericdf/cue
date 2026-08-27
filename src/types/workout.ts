@@ -1,6 +1,14 @@
 import type { Exercise } from './exercise'
 
-export type Phase = 'equipment' | 'targets' | 'exercises' | 'sequence' | 'workout' | 'summary'
+export type Phase =
+  | 'start'
+  | 'equipment'
+  | 'targets'
+  | 'exercises'
+  | 'customize'
+  | 'sequence'
+  | 'workout'
+  | 'summary'
 
 export type ExerciseStatus = 'pending' | 'in-progress' | 'completed' | 'skipped'
 
@@ -12,6 +20,11 @@ export interface SequenceEntry {
   notes?: string
   /** Human-readable equipment change to announce before this exercise. */
   transitionNote?: string
+  /** This session's numbers, seeded from the exercise defaults. */
+  reps?: number
+  sets: number
+  /** Sets finished so far; drives the between-sets rest loop. */
+  setsCompleted: number
 }
 
 export interface WorkoutFeedback {

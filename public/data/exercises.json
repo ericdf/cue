@@ -4,10 +4,17 @@
       "id": "bird-dog",
       "name": "Bird Dog",
       "description": "Core stability and balance challenge",
-      "targetMuscles": ["balance", "core", "stability"],
+      "targetMuscles": [
+        "balance",
+        "core",
+        "stability"
+      ],
       "position": "hands-and-knees",
       "requiredEquipment": [
-        { "categoryId": "padded-knee-surface", "note": "Reduces joint stress" }
+        {
+          "categoryId": "padded-knee-surface",
+          "note": "Reduces joint stress"
+        }
       ],
       "optionalEquipment": [],
       "setup": {
@@ -15,41 +22,97 @@
       },
       "instructions": {
         "text": "Slowly reach one arm forward while extending the opposite leg behind you. Pause briefly, focusing on keeping your hips level and your torso still. Return to the starting position and repeat on the opposite side.",
-        "reps": "6 repetitions on each side"
+        "reps": 6,
+        "repsPerSide": true,
+        "sets": 2
       },
       "cues": "Move slowly and focus on control rather than speed.",
       "notes": "This exercise challenges your balance and coordination by teaching you to stabilize your core while your limbs work independently.",
-      "media": { "image": "/images/bird-dog.jpg", "audio": null, "video": null }
+      "media": {
+        "image": "/images/bird-dog.jpg",
+        "audio": null,
+        "video": null
+      }
     },
     {
       "id": "half-moon-hinge",
       "name": "Half-Moon Hinge",
-      "description": "Hip hinge pattern with lateral reach",
-      "targetMuscles": ["core", "mobility", "stability"],
-      "position": "kneeling",
-      "requiredEquipment": [
-        { "categoryId": "padded-knee-surface", "note": "Kneeling position" }
+      "description": "Single-leg stability with controlled rotation",
+      "targetMuscles": [
+        "balance",
+        "stability",
+        "core"
       ],
-      "optionalEquipment": [],
+      "position": "standing",
+      "requiredEquipment": [],
+      "optionalEquipment": [
+        {
+          "categoryId": "padded-knee-surface",
+          "note": "A yoga block gives you a raised target to reach for"
+        }
+      ],
       "setup": {
-        "text": "Begin in a tall kneeling position with your hips stacked over your knees and your arms relaxed at your sides."
+        "text": "Stand on one leg with a slight bend in your knee. A yoga block on the floor in front of you gives you something to reach for."
       },
       "instructions": {
-        "text": "Hinge at the hips and sweep one arm overhead in a wide arc, tracing a half moon. Keep your ribs down and your hips square as you reach. Return to tall kneeling and repeat on the other side.",
-        "reps": "8 repetitions on each side"
+        "text": "Hinge at the hip, reaching your opposite leg behind you and keeping your hips square to the floor as you lower. From the bottom position, reach one hand toward the ground or a yoga block, then rotate your hips and chest open until they are stacked. Pause briefly before reversing the movement and returning to the starting position.",
+        "reps": 6,
+        "repsPerSide": true,
+        "sets": 2
       },
-      "cues": "Reach long through the fingertips; avoid collapsing at the waist.",
-      "notes": "Pairs well with other floor work since it needs no equipment change.",
-      "media": { "image": "/images/half-moon-hinge.jpg", "audio": null, "video": null }
+      "cues": "Keep your hips square to the floor as you lower; move slowly through the rotation.",
+      "notes": "Freestyle requires you to rotate smoothly from side to side while maintaining control through your hips and core. This develops single-leg stability and teaches controlled body rotation.",
+      "media": {
+        "image": "/images/half-moon-hinge.jpg",
+        "audio": null,
+        "video": null
+      }
+    },
+    {
+      "id": "single-leg-hop-stick",
+      "name": "Single-Leg Hop and Stick",
+      "description": "Power production with a controlled landing",
+      "targetMuscles": [
+        "balance",
+        "power",
+        "legs",
+        "control"
+      ],
+      "position": "standing",
+      "requiredEquipment": [],
+      "optionalEquipment": [],
+      "setup": {
+        "text": "Stand on one leg with enough clear space in front of you to jump forward and land."
+      },
+      "instructions": {
+        "text": "Jump forward and land on the same leg, absorbing the landing with a slight bend in your knee. Hold the position until your body becomes completely still before repeating.",
+        "reps": 6,
+        "repsPerSide": true,
+        "sets": 2
+      },
+      "cues": "Stick the landing — stay completely still before the next rep. To increase the challenge, jump higher or farther while maintaining a controlled landing.",
+      "notes": "Strong starts, turns, and kick all rely on your ability to produce force and control your body position. This develops both power and balance by teaching you to generate force and absorb it under control.",
+      "media": {
+        "image": "/images/single-leg-hop-stick.jpg",
+        "audio": null,
+        "video": null
+      }
     },
     {
       "id": "dead-bug",
       "name": "Dead Bug",
       "description": "Anti-extension core control",
-      "targetMuscles": ["core", "control", "stability"],
+      "targetMuscles": [
+        "core",
+        "control",
+        "stability"
+      ],
       "position": "supine",
       "requiredEquipment": [
-        { "categoryId": "padded-knee-surface", "note": "Comfort for the spine" }
+        {
+          "categoryId": "padded-knee-surface",
+          "note": "Comfort for the spine"
+        }
       ],
       "optionalEquipment": [],
       "setup": {
@@ -57,20 +120,33 @@
       },
       "instructions": {
         "text": "Press your lower back gently into the floor. Slowly lower one arm overhead while extending the opposite leg toward the floor. Stop before your back arches, then return to the start and switch sides.",
-        "reps": "10 repetitions on each side"
+        "reps": 10,
+        "repsPerSide": true,
+        "sets": 2
       },
       "cues": "Keep your lower back flat throughout; move only as far as you can control.",
       "notes": "A foundational core exercise that teaches bracing under limb movement.",
-      "media": { "image": "/images/dead-bug.jpg", "audio": null, "video": null }
+      "media": {
+        "image": "/images/dead-bug.jpg",
+        "audio": null,
+        "video": null
+      }
     },
     {
       "id": "forearm-plank",
       "name": "Forearm Plank",
       "description": "Isometric full-body brace",
-      "targetMuscles": ["core", "endurance", "stability"],
+      "targetMuscles": [
+        "core",
+        "endurance",
+        "stability"
+      ],
       "position": "plank",
       "requiredEquipment": [
-        { "categoryId": "padded-knee-surface", "note": "Cushions the forearms" }
+        {
+          "categoryId": "padded-knee-surface",
+          "note": "Cushions the forearms"
+        }
       ],
       "optionalEquipment": [],
       "setup": {
@@ -78,21 +154,36 @@
       },
       "instructions": {
         "text": "Hold the position with your hips level, squeezing your glutes and bracing your abdominals. Breathe steadily for the duration of the hold.",
-        "durationSeconds": 30
+        "durationSeconds": 30,
+        "sets": 2
       },
       "cues": "Don't let your hips sag or pike; keep a straight line from head to heel.",
       "notes": "A timed hold, so the app will count down aloud.",
-      "media": { "image": "/images/forearm-plank.jpg", "audio": null, "video": null }
+      "media": {
+        "image": "/images/forearm-plank.jpg",
+        "audio": null,
+        "video": null
+      }
     },
     {
       "id": "kneel-stand-medicine",
       "name": "Kneel to Stand With Medicine Ball",
       "description": "Balance and streamline stability",
-      "targetMuscles": ["balance", "stability", "strength"],
+      "targetMuscles": [
+        "balance",
+        "stability",
+        "strength"
+      ],
       "position": "kneeling-to-standing",
       "requiredEquipment": [
-        { "categoryId": "handheld-weight-8lbs", "note": "Held overhead" },
-        { "categoryId": "padded-knee-surface", "note": "Protects the down knee" }
+        {
+          "categoryId": "handheld-weight-8lbs",
+          "note": "Held overhead"
+        },
+        {
+          "categoryId": "padded-knee-surface",
+          "note": "Protects the down knee"
+        }
       ],
       "optionalEquipment": [],
       "setup": {
@@ -100,20 +191,33 @@
       },
       "instructions": {
         "text": "Step one foot forward into a lunge position, then drive through your front leg to stand. Keep the weight overhead and your upper body steady throughout the movement. Reverse the motion to return to the starting position.",
-        "reps": "6 repetitions on each side"
+        "reps": 6,
+        "repsPerSide": true,
+        "sets": 2
       },
       "cues": "Maintain steady core; don't lean forward.",
       "notes": "This challenges balance and stability while reinforcing the strength needed to hold a tight streamline.",
-      "media": { "image": "/images/kneel-stand-medicine.jpg", "audio": null, "video": null }
+      "media": {
+        "image": "/images/kneel-stand-medicine.jpg",
+        "audio": null,
+        "video": null
+      }
     },
     {
       "id": "goblet-squat",
       "name": "Goblet Squat",
       "description": "Loaded squat pattern",
-      "targetMuscles": ["legs", "strength", "mobility"],
+      "targetMuscles": [
+        "legs",
+        "strength",
+        "mobility"
+      ],
       "position": "standing",
       "requiredEquipment": [
-        { "categoryId": "handheld-weight-8lbs", "note": "Held at chest height" }
+        {
+          "categoryId": "handheld-weight-8lbs",
+          "note": "Held at chest height"
+        }
       ],
       "optionalEquipment": [],
       "setup": {
@@ -121,17 +225,27 @@
       },
       "instructions": {
         "text": "Sit your hips back and down, keeping your chest tall and your elbows inside your knees at the bottom. Drive through your whole foot to stand back up.",
-        "reps": "12 repetitions"
+        "reps": 12,
+        "repsPerSide": false,
+        "sets": 2
       },
       "cues": "Keep your heels down and your knees tracking over your toes.",
       "notes": "The weight at your chest acts as a counterbalance and helps you sit deeper.",
-      "media": { "image": "/images/goblet-squat.jpg", "audio": null, "video": null }
+      "media": {
+        "image": "/images/goblet-squat.jpg",
+        "audio": null,
+        "video": null
+      }
     },
     {
       "id": "suspension-row",
       "name": "Suspension Row",
       "description": "Horizontal pull for the upper back",
-      "targetMuscles": ["arms", "back", "strength"],
+      "targetMuscles": [
+        "arms",
+        "back",
+        "strength"
+      ],
       "position": "standing",
       "requiredEquipment": [
         {
@@ -146,17 +260,27 @@
       },
       "instructions": {
         "text": "Pull your chest toward the handles by driving your elbows back and squeezing your shoulder blades together. Lower yourself under control until your arms are straight again.",
-        "reps": "10 repetitions"
+        "reps": 10,
+        "repsPerSide": false,
+        "sets": 2
       },
       "cues": "Keep your body in one straight line; don't let your hips drop.",
       "notes": "Walk your feet farther forward to make it harder.",
-      "media": { "image": "/images/suspension-row.jpg", "audio": null, "video": null }
+      "media": {
+        "image": "/images/suspension-row.jpg",
+        "audio": null,
+        "video": null
+      }
     },
     {
       "id": "suspension-chest-fly",
       "name": "Suspension Chest Fly",
       "description": "Chest and shoulder stability under load",
-      "targetMuscles": ["arms", "chest", "stability"],
+      "targetMuscles": [
+        "arms",
+        "chest",
+        "stability"
+      ],
       "position": "standing",
       "requiredEquipment": [
         {
@@ -171,17 +295,27 @@
       },
       "instructions": {
         "text": "Open your arms out to the sides in a wide arc, lowering your chest between the handles. Keep a soft bend in your elbows, then press back to the starting position.",
-        "reps": "10 repetitions"
+        "reps": 10,
+        "repsPerSide": false,
+        "sets": 2
       },
       "cues": "Brace your core so your hips don't sag as you open your arms.",
       "notes": "Shares a configuration with the suspension row, so run them back to back.",
-      "media": { "image": "/images/suspension-chest-fly.jpg", "audio": null, "video": null }
+      "media": {
+        "image": "/images/suspension-chest-fly.jpg",
+        "audio": null,
+        "video": null
+      }
     },
     {
       "id": "suspension-hamstring-curl",
       "name": "Suspension Hamstring Curl",
       "description": "Posterior chain under tension",
-      "targetMuscles": ["legs", "core", "strength"],
+      "targetMuscles": [
+        "legs",
+        "core",
+        "strength"
+      ],
       "position": "supine",
       "requiredEquipment": [
         {
@@ -189,7 +323,10 @@
           "configurationId": "floor-height",
           "note": "Straps lowered for the heels"
         },
-        { "categoryId": "padded-knee-surface", "note": "Comfort for the back" }
+        {
+          "categoryId": "padded-knee-surface",
+          "note": "Comfort for the back"
+        }
       ],
       "optionalEquipment": [],
       "setup": {
@@ -197,20 +334,33 @@
       },
       "instructions": {
         "text": "Lift your hips into a bridge, then pull your heels toward your glutes by bending your knees. Keep your hips high the entire time, then extend your legs back out slowly.",
-        "reps": "10 repetitions"
+        "reps": 10,
+        "repsPerSide": false,
+        "sets": 2
       },
       "cues": "Don't let your hips drop when your legs extend.",
       "notes": "Requires lowering the straps, so the app will announce the transition.",
-      "media": { "image": "/images/suspension-hamstring-curl.jpg", "audio": null, "video": null }
+      "media": {
+        "image": "/images/suspension-hamstring-curl.jpg",
+        "audio": null,
+        "video": null
+      }
     },
     {
       "id": "stability-ball-plank-rollout",
       "name": "Stability Ball Plank Rollout",
       "description": "Core control and body alignment",
-      "targetMuscles": ["core", "stability", "control"],
+      "targetMuscles": [
+        "core",
+        "stability",
+        "control"
+      ],
       "position": "plank",
       "requiredEquipment": [
-        { "categoryId": "stability-ball", "note": "Standard size (65 cm)" }
+        {
+          "categoryId": "stability-ball",
+          "note": "Standard size (65 cm)"
+        }
       ],
       "optionalEquipment": [],
       "setup": {
@@ -218,64 +368,106 @@
       },
       "instructions": {
         "text": "Slowly roll the ball forward by extending your arms, maintaining a rigid torso throughout the movement. Roll out as far as you can while keeping good alignment, then pull the ball back to the starting position.",
-        "reps": "12 repetitions"
+        "reps": 12,
+        "repsPerSide": false,
+        "sets": 2
       },
       "cues": "Keep your core tight; don't let your hips sag or pike.",
       "notes": "This exercise challenges your ability to resist unwanted movement and helps improve overall body control.",
-      "media": { "image": "/images/stability-ball-plank.jpg", "audio": null, "video": null }
+      "media": {
+        "image": "/images/stability-ball-plank.jpg",
+        "audio": null,
+        "video": null
+      }
     },
     {
       "id": "stability-ball-hip-bridge",
       "name": "Stability Ball Hip Bridge",
       "description": "Glute activation with an unstable base",
-      "targetMuscles": ["legs", "balance", "stability"],
+      "targetMuscles": [
+        "legs",
+        "balance",
+        "stability"
+      ],
       "position": "supine",
       "requiredEquipment": [
-        { "categoryId": "stability-ball", "note": "Heels resting on the ball" }
+        {
+          "categoryId": "stability-ball",
+          "note": "Heels resting on the ball"
+        }
       ],
       "optionalEquipment": [
-        { "categoryId": "padded-knee-surface", "note": "Comfort for the back" }
+        {
+          "categoryId": "padded-knee-surface",
+          "note": "Comfort for the back"
+        }
       ],
       "setup": {
         "text": "Lie on your back with your heels on top of a stability ball and your arms flat at your sides."
       },
       "instructions": {
         "text": "Press through your heels to lift your hips into a straight line from shoulders to heels. Hold briefly at the top, resisting any wobble, then lower with control.",
-        "reps": "12 repetitions"
+        "reps": 12,
+        "repsPerSide": false,
+        "sets": 2
       },
       "cues": "Squeeze your glutes at the top; keep the ball as still as you can.",
       "notes": "Uses the same stability ball as the rollout, so no reconfiguration is needed.",
-      "media": { "image": "/images/stability-ball-hip-bridge.jpg", "audio": null, "video": null }
+      "media": {
+        "image": "/images/stability-ball-hip-bridge.jpg",
+        "audio": null,
+        "video": null
+      }
     },
     {
       "id": "paloff-press",
       "name": "Single-Leg Paloff Press",
-      "description": "Anti-rotation core with a balance demand",
-      "targetMuscles": ["core", "balance", "stability"],
+      "description": "Anti-rotation core stability on one leg",
+      "targetMuscles": [
+        "core",
+        "balance",
+        "stability"
+      ],
       "position": "standing",
       "requiredEquipment": [
-        { "categoryId": "resistance-band", "note": "Anchored at chest height" }
+        {
+          "categoryId": "resistance-band",
+          "note": "Anchored at your side"
+        }
       ],
       "optionalEquipment": [],
       "setup": {
-        "text": "Anchor a resistance band at chest height and stand side-on to it, holding the band with both hands at your sternum."
+        "text": "Stand on one leg with a resistance band or cable anchored at your side. Hold the handle at your chest and get balanced before starting the movement."
       },
       "instructions": {
-        "text": "Lift the leg closest to the anchor, then press the band straight out in front of your chest and resist the pull that wants to rotate you. Bring your hands back to your chest and repeat before switching sides.",
-        "reps": "8 repetitions on each side"
+        "text": "Keeping your torso straight and your hips level, press the handle straight out in front of your body. Pause briefly, resisting the pull of the band as it tries to rotate you. Return the handle to your chest and repeat.",
+        "reps": 12,
+        "repsPerSide": true,
+        "sets": 2
       },
-      "cues": "Stay square to the front; the band should not twist you.",
-      "notes": "Standing on one leg adds a balance challenge to the anti-rotation work.",
-      "media": { "image": "/images/paloff-press.jpg", "audio": null, "video": null }
+      "cues": "Focus on staying balanced and keeping your shoulders and hips square throughout the movement.",
+      "notes": "Challenges both balance and core stability by teaching you to resist unwanted rotation while standing on one leg.",
+      "media": {
+        "image": "/images/paloff-press.jpg",
+        "audio": null,
+        "video": null
+      }
     },
     {
       "id": "band-pull-apart",
       "name": "Band Pull-Apart",
       "description": "Upper back endurance and posture",
-      "targetMuscles": ["arms", "back", "endurance"],
+      "targetMuscles": [
+        "arms",
+        "back",
+        "endurance"
+      ],
       "position": "standing",
       "requiredEquipment": [
-        { "categoryId": "resistance-band", "note": "Held at arm's length" }
+        {
+          "categoryId": "resistance-band",
+          "note": "Held at arm's length"
+        }
       ],
       "optionalEquipment": [],
       "setup": {
@@ -283,17 +475,26 @@
       },
       "instructions": {
         "text": "Pull the band apart by driving your hands out to the sides, squeezing your shoulder blades together. Keep your arms straight, then return slowly to the start.",
-        "reps": "15 repetitions"
+        "reps": 15,
+        "repsPerSide": false,
+        "sets": 2
       },
       "cues": "Keep your shoulders down away from your ears.",
       "notes": "Uses the same band as the Paloff press, so pair them.",
-      "media": { "image": "/images/band-pull-apart.jpg", "audio": null, "video": null }
+      "media": {
+        "image": "/images/band-pull-apart.jpg",
+        "audio": null,
+        "video": null
+      }
     },
     {
       "id": "wall-sit",
       "name": "Wall Sit",
       "description": "Isometric leg endurance",
-      "targetMuscles": ["legs", "endurance"],
+      "targetMuscles": [
+        "legs",
+        "endurance"
+      ],
       "position": "standing",
       "requiredEquipment": [],
       "optionalEquipment": [],
@@ -302,32 +503,50 @@
       },
       "instructions": {
         "text": "Slide down the wall until your knees are bent at about ninety degrees. Hold the position with your back flat against the wall and your weight in your heels.",
-        "durationSeconds": 45
+        "durationSeconds": 45,
+        "sets": 2
       },
       "cues": "Keep your knees over your ankles, not past your toes.",
       "notes": "Needs no equipment at all, so it fits anywhere in a sequence.",
-      "media": { "image": "/images/wall-sit.jpg", "audio": null, "video": null }
+      "media": {
+        "image": "/images/wall-sit.jpg",
+        "audio": null,
+        "video": null
+      }
     },
     {
       "id": "reverse-lunge",
       "name": "Reverse Lunge",
       "description": "Single-leg strength and balance",
-      "targetMuscles": ["legs", "balance", "strength"],
+      "targetMuscles": [
+        "legs",
+        "balance",
+        "strength"
+      ],
       "position": "standing",
       "requiredEquipment": [],
       "optionalEquipment": [
-        { "categoryId": "handheld-weight-8lbs", "note": "Adds load if available" }
+        {
+          "categoryId": "handheld-weight-8lbs",
+          "note": "Adds load if available"
+        }
       ],
       "setup": {
         "text": "Stand tall with your feet hip-width apart and your hands on your hips."
       },
       "instructions": {
         "text": "Step one foot back and lower until both knees are bent at about ninety degrees. Drive through your front heel to return to standing, then alternate sides.",
-        "reps": "10 repetitions on each side"
+        "reps": 10,
+        "repsPerSide": true,
+        "sets": 2
       },
       "cues": "Keep your torso upright; step back far enough that your front knee stays over your ankle.",
       "notes": "Bodyweight by default; hold a weight to make it harder.",
-      "media": { "image": "/images/reverse-lunge.jpg", "audio": null, "video": null }
+      "media": {
+        "image": "/images/reverse-lunge.jpg",
+        "audio": null,
+        "video": null
+      }
     }
   ]
 }

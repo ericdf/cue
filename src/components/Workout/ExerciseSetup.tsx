@@ -1,15 +1,19 @@
 import { useState } from 'react'
-import type { Exercise } from '../../types/exercise'
+import { describePrescription, type Exercise } from '../../types/exercise'
 import { asset } from '../../services/dataLoader'
 
 interface Props {
   exercise: Exercise
   position: number
   total: number
+  /** This session's reps, which may differ from the exercise default. */
+  reps?: number
+  set: number
+  sets: number
 }
 
 /** The exercise card shown during the workout: big text, readable at arm's length. */
-export const ExerciseSetup = ({ exercise, position, total }: Props) => {
+export const ExerciseSetup = ({ exercise, position, total, reps, set, sets }: Props) => {
   const [imageFailed, setImageFailed] = useState(false)
   const showImage = Boolean(exercise.media.image) && !imageFailed
 
@@ -28,8 +32,13 @@ export const ExerciseSetup = ({ exercise, position, total }: Props) => {
         />
       )}
       <p className="workout-exercise__prescription">
-        {exercise.instructions.reps ?? `${exercise.instructions.durationSeconds}-second hold`}
+        {describePrescription({ ...exercise.instructions, reps })}
       </p>
+      {sets > 1 && (
+        <p className="workout-exercise__sets">
+          Set {set} of {sets}
+        </p>
+      )}
       {exercise.cues && <p className="workout-exercise__cue">{exercise.cues}</p>}
     </div>
   )
