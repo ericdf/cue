@@ -23,25 +23,23 @@
 ## Phase 1: Pre-Workout (Screen-Based Planning)
 
 ### 1.1 Equipment Declaration
-User selects available equipment by category. **UI respects `selectType` per category in schema.** Selections are cached to localStorage in real-time.
+User selects available equipment by checking all items they have. **All categories use checkboxes (multi-select).** Selections are cached to localStorage in real-time.
 
 **Flow:**
 1. Landing screen: "What equipment do you have today?"
 2. Display all equipment categories from `data/equipment.json`
-3. Each category displays UI based on `selectType`:
-   - **`selectType: "radio"`** → Radio buttons (single-select, mutually exclusive). User picks one item from the category.
-   - **`selectType: "checkbox"`** → Checkboxes (multi-select). User can pick multiple items from the category.
+3. Each category shows checkboxes; user checks **all items they own/have access to**
 4. As user selects items, **immediately save to localStorage** (no "save" button needed)
 5. User can return to this screen anytime to adjust (useful when equipment changes by location)
 
 **Example:**
 ```
-Padded Surface for Floor Work (selectType: "radio" — pick one):
-  ◉ Mat
-  ○ Pillow
-  ○ Folded towel
+Padded Surface for Floor Work:
+  ☑ Mat
+  ☑ Pillow
+  ☐ Folded towel
 
-Handheld Weights (selectType: "checkbox" — pick any):
+Handheld Weights:
   ☑ Dumbbell
   ☑ Kettlebell
   ☐ Medicine ball
@@ -50,10 +48,9 @@ Handheld Weights (selectType: "checkbox" — pick any):
 
 **Key behavior:**
 - Selections persist across sessions (stored in localStorage with key `equipment-selected`)
+- User declares **all available equipment** (multi-select)
 - User can edit equipment at any time during Phase 1 (go back to this screen)
-- Equipment can differ by location or session (e.g., home vs. gym)
-- Radio categories: single-select (mutually exclusive items within the category)
-- Checkbox categories: multi-select (can own multiple items that serve similar purposes)
+- Equipment availability can differ by location or session (e.g., home vs. gym)
 
 ### 1.2 Target Selection
 User selects workout focus (may be multiple).
@@ -69,7 +66,9 @@ System presents 3–5 exercises matching targets + available equipment.
 
 **Algorithm:**
 1. Filter `exercises.json` by:
-   - All required equipment matches user's declared equipment
+   - **For each `requiredEquipment` item:**
+     - If `type: "category"` → User must have **at least one item** from that category
+     - If `type: "specific"` → User must have **that exact equipment item**
    - At least one target matches selected focus
 2. Rank by relevance (MVP: alphabetical; future: feedback loop)
 3. Display exercise cards with:
@@ -363,8 +362,9 @@ In Phase 1, before equipment/target selection, offer option to load a saved temp
       "position": "hands-and-knees",
       "requiredEquipment": [
         {
+          "type": "category",
           "categoryId": "padded-knee-surface",
-          "note": "Reduces joint stress"
+          "note": "Any padded surface works (mat, pillow, towel)"
         }
       ],
       "setup": {
@@ -383,10 +383,25 @@ In Phase 1, before equipment/target selection, offer option to load a saved temp
         "audio": null,
         "video": null
       }
+    },
+    {
+      "id": "example-specific-equipment",
+      "name": "Example with Specific Equipment",
+      "requiredEquipment": [
+        {
+          "type": "specific",
+          "equipmentId": "mat",
+          "note": "Must be a mat; pillow will not work"
+        }
+      ]
     }
   ]
 }
 ```
+
+**Equipment Requirement Types:**
+- **`type: "category"`** — User must have **any item** from the category (e.g., mat OR pillow OR towel)
+- **`type: "specific"`** — User must have **this exact equipment item** (e.g., must be mat, not pillow)
 
 ### Workout Template (localStorage)
 
@@ -564,7 +579,7 @@ const deleteTemplate = (templateId: string) => {}
 ## Component Checklist for Claude Code
 
 ### Phase 1: Pre-Workout (Screen)
-- [ ] EquipmentSelector: Render radio buttons for `selectType: "radio"` categories, checkboxes for `selectType: "checkbox"` categories. Cache to localStorage in real-time.
+- [ ] EquipmentSelector: Display all equipment as checkboxes (multi-select). Cache to localStorage in real-time. User declares all items they have.
 - [ ] TargetSelector: Multiselect for muscle groups
 - [ ] ExerciseRecommender: Filter + display 3–5 exercises
 - [ ] RepSetsCustomizer: Edit UI for reps/sets per exercise
@@ -617,8 +632,8 @@ const deleteTemplate = (templateId: string) => {}
 
 ## Testing Checklist
 
-- [ ] Equipment selector: radio buttons for `selectType: "radio"` categories (single-select, mutually exclusive)
-- [ ] Equipment selector: checkboxes for `selectType: "checkbox"` categories (multi-select, any combination)
+- [ ] Equipment selector: all items display as checkboxes (multi-select)
+- [ ] Equipment selector: user can check all items they have available
 - [ ] Equipment selector: persists to localStorage immediately as user selects (no "save" button)
 - [ ] Equipment selector: user can return anytime to adjust selections
 - [ ] Equipment selector: selections cached across sessions
@@ -628,6 +643,8 @@ const deleteTemplate = (templateId: string) => {}
 - [ ] Pre-workout confirmation: "Start Workout" enables WakeLock and enters Phase 2
 - [ ] Target selector filters exercises correctly
 - [ ] Exercise recommender displays 3–5 matching exercises
+- [ ] Exercise recommender: filters correctly for category-based requirements (user needs any item from category)
+- [ ] Exercise recommender: filters correctly for specific equipment requirements (user needs exact item)
 - [ ] Reps/sets customizer updates values
 - [ ] Sequence optimizer minimizes transitions
 - [ ] Manual reordering works (drag or arrows)
