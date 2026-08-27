@@ -167,8 +167,8 @@
     },
     {
       "id": "kneel-stand-medicine",
-      "name": "Kneel to Stand With Medicine Ball",
-      "description": "Balance and streamline stability",
+      "name": "Kneel to Stand With Weight",
+      "description": "Balance and stability with overhead load",
       "targetMuscles": [
         "balance",
         "stability",
@@ -177,10 +177,12 @@
       "position": "kneeling-to-standing",
       "requiredEquipment": [
         {
-          "categoryId": "handheld-weight-8lbs",
-          "note": "Held overhead"
+          "type": "category",
+          "categoryId": "handheld-weight",
+          "note": "Any handheld weight (dumbbell, medicine ball, kettlebell, etc.); adjust weight to your strength"
         },
         {
+          "type": "category",
           "categoryId": "padded-knee-surface",
           "note": "Protects the down knee"
         }
@@ -195,7 +197,7 @@
         "repsPerSide": true,
         "sets": 2
       },
-      "cues": "Maintain steady core; don't lean forward.",
+      "cues": "Maintain steady core; don't lean forward. Choose a weight appropriate for your strength.",
       "notes": "This challenges balance and stability while reinforcing the strength needed to hold a tight streamline.",
       "media": {
         "image": "/images/kneel-stand-medicine.jpg",
@@ -215,8 +217,9 @@
       "position": "standing",
       "requiredEquipment": [
         {
-          "categoryId": "handheld-weight-8lbs",
-          "note": "Held at chest height"
+          "type": "category",
+          "categoryId": "handheld-weight",
+          "note": "Any handheld weight held at chest height; choose weight appropriate for your strength"
         }
       ],
       "optionalEquipment": [],
@@ -527,8 +530,9 @@
       "requiredEquipment": [],
       "optionalEquipment": [
         {
-          "categoryId": "handheld-weight-8lbs",
-          "note": "Adds load if available"
+          "type": "category",
+          "categoryId": "handheld-weight",
+          "note": "Any handheld weight adds load and difficulty"
         }
       ],
       "setup": {

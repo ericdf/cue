@@ -38,12 +38,19 @@ Padded Surface for Floor Work:
   ☑ Mat
   ☑ Pillow
   ☐ Folded towel
+  ☐ Yoga block
 
-Handheld Weights:
+Handheld Weight:
   ☑ Dumbbell
   ☑ Kettlebell
   ☐ Medicine ball
-  ☑ Laundry jug
+  ☑ Household weight (jug, bottle, etc.)
+
+Suspension Trainer:
+  ☑ Suspension Trainer
+  
+Resistance Band:
+  ☑ Resistance Band
 ```
 
 **Key behavior:**
@@ -385,13 +392,24 @@ In Phase 1, before equipment/target selection, offer option to load a saved temp
       }
     },
     {
+      "id": "example-category-equipment",
+      "name": "Example with Category-Based Equipment",
+      "requiredEquipment": [
+        {
+          "type": "category",
+          "categoryId": "handheld-weight",
+          "note": "Any handheld weight (dumbbell, kettlebell, medicine ball, etc.); adjust reps for your strength"
+        }
+      ]
+    },
+    {
       "id": "example-specific-equipment",
-      "name": "Example with Specific Equipment",
+      "name": "Example with Specific Equipment (rare)",
       "requiredEquipment": [
         {
           "type": "specific",
           "equipmentId": "mat",
-          "note": "Must be a mat; pillow will not work"
+          "note": "Mat preferred (pillow may not provide enough support)"
         }
       ]
     }
