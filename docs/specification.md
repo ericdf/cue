@@ -23,34 +23,37 @@
 ## Phase 1: Pre-Workout (Screen-Based Planning)
 
 ### 1.1 Equipment Declaration
-User selects available equipment by category. **Selections are multi-select (checkboxes) and cached to localStorage in real-time.**
+User selects available equipment by category. **UI respects `selectType` per category in schema.** Selections are cached to localStorage in real-time.
 
 **Flow:**
 1. Landing screen: "What equipment do you have today?"
 2. Display all equipment categories from `data/equipment.json`
-3. Each category: **checkboxes (multi-select)** — user can pick multiple items per category
+3. Each category displays UI based on `selectType`:
+   - **`selectType: "radio"`** → Radio buttons (single-select, mutually exclusive). User picks one item from the category.
+   - **`selectType: "checkbox"`** → Checkboxes (multi-select). User can pick multiple items from the category.
 4. As user selects items, **immediately save to localStorage** (no "save" button needed)
 5. User can return to this screen anytime to adjust (useful when equipment changes by location)
 
 **Example:**
 ```
-Padded Surface for Floor Work (pick one):
-  ☐ Mat
-  ☑ Pillow
-  ☐ Folded towel
+Padded Surface for Floor Work (selectType: "radio" — pick one):
+  ◉ Mat
+  ○ Pillow
+  ○ Folded towel
 
-8 lb Handheld Weight (pick one):
+Handheld Weights (selectType: "checkbox" — pick any):
   ☑ Dumbbell
+  ☑ Kettlebell
   ☐ Medicine ball
-  ☐ Laundry jug
+  ☑ Laundry jug
 ```
 
 **Key behavior:**
 - Selections persist across sessions (stored in localStorage with key `equipment-selected`)
 - User can edit equipment at any time during Phase 1 (go back to this screen)
 - Equipment can differ by location or session (e.g., home vs. gym)
-- Categories with `selectType: "radio"` use radio buttons (single-select, mutually exclusive)
-- Categories with `selectType: "checkbox"` use checkboxes (multi-select, any combination)
+- Radio categories: single-select (mutually exclusive items within the category)
+- Checkbox categories: multi-select (can own multiple items that serve similar purposes)
 
 ### 1.2 Target Selection
 User selects workout focus (may be multiple).
@@ -561,7 +564,7 @@ const deleteTemplate = (templateId: string) => {}
 ## Component Checklist for Claude Code
 
 ### Phase 1: Pre-Workout (Screen)
-- [ ] EquipmentSelector: Multi-select checkboxes per category, cache to localStorage in real-time
+- [ ] EquipmentSelector: Render radio buttons for `selectType: "radio"` categories, checkboxes for `selectType: "checkbox"` categories. Cache to localStorage in real-time.
 - [ ] TargetSelector: Multiselect for muscle groups
 - [ ] ExerciseRecommender: Filter + display 3–5 exercises
 - [ ] RepSetsCustomizer: Edit UI for reps/sets per exercise
@@ -614,7 +617,8 @@ const deleteTemplate = (templateId: string) => {}
 
 ## Testing Checklist
 
-- [ ] Equipment selector: multi-select (checkboxes), can pick multiple items per category
+- [ ] Equipment selector: radio buttons for `selectType: "radio"` categories (single-select, mutually exclusive)
+- [ ] Equipment selector: checkboxes for `selectType: "checkbox"` categories (multi-select, any combination)
 - [ ] Equipment selector: persists to localStorage immediately as user selects (no "save" button)
 - [ ] Equipment selector: user can return anytime to adjust selections
 - [ ] Equipment selector: selections cached across sessions
