@@ -1,0 +1,137 @@
+{
+  "categories": [
+    {
+      "id": "padded-knee-surface",
+      "name": "Padded Surface for Floor Work",
+      "description": "Mat, pillow, or equivalent",
+      "selectType": "radio"
+    },
+    {
+      "id": "handheld-weight-8lbs",
+      "name": "8 lb Handheld Weight",
+      "description": "Dumbbell, medicine ball, or household item",
+      "selectType": "radio"
+    },
+    {
+      "id": "suspension-trainer",
+      "name": "Suspension Trainer",
+      "description": "TRX or equivalent",
+      "selectType": "checkbox"
+    },
+    {
+      "id": "stability-ball",
+      "name": "Stability Ball",
+      "description": "Standard size (65 cm)",
+      "selectType": "checkbox"
+    },
+    {
+      "id": "resistance-band",
+      "name": "Resistance Band",
+      "description": "Light, medium, or heavy tension",
+      "selectType": "radio"
+    }
+  ],
+  "equipment": [
+    {
+      "id": "mat",
+      "name": "Exercise Mat or Yoga Mat",
+      "category": "padded-knee-surface",
+      "description": "Cushioning for floor work and joint protection",
+      "selectType": "single"
+    },
+    {
+      "id": "pillow",
+      "name": "Pillow or Cushion",
+      "category": "padded-knee-surface",
+      "description": "Household alternative to mat",
+      "selectType": "single"
+    },
+    {
+      "id": "folded-towel",
+      "name": "Folded Towel or Blanket",
+      "category": "padded-knee-surface",
+      "description": "Minimal cushioning; works in a pinch",
+      "selectType": "single"
+    },
+    {
+      "id": "dumbbell-8",
+      "name": "Dumbbell (8 lbs)",
+      "category": "handheld-weight-8lbs",
+      "description": "Standard handheld weight",
+      "selectType": "single"
+    },
+    {
+      "id": "medicine-ball-8",
+      "name": "Medicine Ball (8 lbs)",
+      "category": "handheld-weight-8lbs",
+      "description": "Easier to hold overhead than a dumbbell",
+      "selectType": "single"
+    },
+    {
+      "id": "kettlebell-8",
+      "name": "Kettlebell (8 lbs)",
+      "category": "handheld-weight-8lbs",
+      "description": "Offset handle changes the grip demand",
+      "selectType": "single"
+    },
+    {
+      "id": "laundry-jug",
+      "name": "Jug of Laundry Detergent or Water (8 lb equivalent)",
+      "category": "handheld-weight-8lbs",
+      "description": "Household substitute for a handheld weight",
+      "selectType": "single"
+    },
+    {
+      "id": "suspension-trainer",
+      "name": "Suspension Trainer (TRX or equivalent)",
+      "category": "suspension-trainer",
+      "description": "Adjustable straps for bodyweight exercises",
+      "selectType": "single",
+      "configurations": [
+        {
+          "id": "floor-height",
+          "name": "Floor Height (Straps Nearly Touching Ground)",
+          "adjustmentCost": 2
+        },
+        {
+          "id": "mid-height",
+          "name": "Mid Height (Straps at Waist Level)",
+          "adjustmentCost": 3
+        },
+        {
+          "id": "high-height",
+          "name": "High Height (Straps at Shoulder Level)",
+          "adjustmentCost": 2
+        }
+      ]
+    },
+    {
+      "id": "stability-ball-65",
+      "name": "Stability Ball (65 cm)",
+      "category": "stability-ball",
+      "description": "Large inflatable ball for core and balance work",
+      "selectType": "single"
+    },
+    {
+      "id": "band-light",
+      "name": "Resistance Band (Light)",
+      "category": "resistance-band",
+      "description": "Low tension; good for warm-ups and rehab",
+      "selectType": "single"
+    },
+    {
+      "id": "band-medium",
+      "name": "Resistance Band (Medium)",
+      "category": "resistance-band",
+      "description": "Moderate tension for most exercises",
+      "selectType": "single"
+    },
+    {
+      "id": "band-heavy",
+      "name": "Resistance Band (Heavy)",
+      "category": "resistance-band",
+      "description": "High tension for strength work",
+      "selectType": "single"
+    }
+  ]
+}
