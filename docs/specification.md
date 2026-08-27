@@ -23,21 +23,34 @@
 ## Phase 1: Pre-Workout (Screen-Based Planning)
 
 ### 1.1 Equipment Declaration
-User selects available equipment by category.
+User selects available equipment by category. **Selections are multi-select (checkboxes) and cached to localStorage in real-time.**
 
 **Flow:**
 1. Landing screen: "What equipment do you have today?"
 2. Display all equipment categories from `data/equipment.json`
-3. Each category: radio (single-select) or checkbox (multi-select) based on schema
-4. User selects items they have
-5. Save to localStorage and state
+3. Each category: **checkboxes (multi-select)** — user can pick multiple items per category
+4. As user selects items, **immediately save to localStorage** (no "save" button needed)
+5. User can return to this screen anytime to adjust (useful when equipment changes by location)
 
 **Example:**
 ```
-☐ Mat
-☑ Pillow
-☐ Folded towel
+Padded Surface for Floor Work (pick one):
+  ☐ Mat
+  ☑ Pillow
+  ☐ Folded towel
+
+8 lb Handheld Weight (pick one):
+  ☑ Dumbbell
+  ☐ Medicine ball
+  ☐ Laundry jug
 ```
+
+**Key behavior:**
+- Selections persist across sessions (stored in localStorage with key `equipment-selected`)
+- User can edit equipment at any time during Phase 1 (go back to this screen)
+- Equipment can differ by location or session (e.g., home vs. gym)
+- Categories with `selectType: "radio"` use radio buttons (single-select, mutually exclusive)
+- Categories with `selectType: "checkbox"` use checkboxes (multi-select, any combination)
 
 ### 1.2 Target Selection
 User selects workout focus (may be multiple).
@@ -101,6 +114,32 @@ Display final sequence on screen with all customizations.
 - List of exercises in order with custom reps/sets
 - "Start Workout" button (large, prominent)
 - Save option (see Phase 3)
+
+### 1.7 Pre-Workout Confirmation (New Screen)
+Before Phase 2 starts, show a final confirmation screen.
+
+**Flow:**
+1. User taps "Start Workout"
+2. Confirmation screen displays:
+   - **Selected Equipment** (editable):
+     ```
+     ✓ Pillow
+     ✓ Dumbbell
+     
+     [Edit Equipment]
+     ```
+   - **Exercise Sequence** (read-only):
+     ```
+     1. Bird Dog (6 reps × 2 sets)
+     2. Half-Moon Hinge (6 reps × 2 sets)
+     3. Kneel to Stand (6 reps × 2 sets)
+     ```
+   - **Start Workout** button (green, large)
+
+3. User can tap **"Edit Equipment"** to go back to 1.1 (multi-select screen) and adjust
+4. Once user confirms "Start Workout", enter Phase 2 and enable WakeLock
+
+**Purpose:** Double-check that equipment is correct before voice-driven Phase 2 starts (can't easily edit during Phase 2)
 
 ---
 
@@ -522,13 +561,15 @@ const deleteTemplate = (templateId: string) => {}
 ## Component Checklist for Claude Code
 
 ### Phase 1: Pre-Workout (Screen)
-- [ ] EquipmentSelector: Multi-category radio/checkbox selection
+- [ ] EquipmentSelector: Multi-select checkboxes per category, cache to localStorage in real-time
 - [ ] TargetSelector: Multiselect for muscle groups
 - [ ] ExerciseRecommender: Filter + display 3–5 exercises
 - [ ] RepSetsCustomizer: Edit UI for reps/sets per exercise
 - [ ] SequenceOptimizer: Reorder exercises, show transitions, manual drag/reorder
 - [ ] TemplateLoader: Load saved templates, adjust for today
-- [ ] StartWorkoutButton: Confirmation screen with "Start Workout"
+- [ ] PreWorkoutConfirmation: Show selected equipment (editable), exercise sequence, "Start Workout" button
+  - Allow user to tap "Edit Equipment" and go back to EquipmentSelector
+  - Enable WakeLock when "Start Workout" tapped
 
 ### Phase 2: Workout (Voice)
 - [ ] ExerciseSetup: Display exercise, play setup audio, listen for "next"/"repeat"/"skip"
@@ -573,7 +614,14 @@ const deleteTemplate = (templateId: string) => {}
 
 ## Testing Checklist
 
-- [ ] Equipment selector persists to localStorage
+- [ ] Equipment selector: multi-select (checkboxes), can pick multiple items per category
+- [ ] Equipment selector: persists to localStorage immediately as user selects (no "save" button)
+- [ ] Equipment selector: user can return anytime to adjust selections
+- [ ] Equipment selector: selections cached across sessions
+- [ ] Pre-workout confirmation: displays selected equipment (editable)
+- [ ] Pre-workout confirmation: displays exercise sequence (read-only)
+- [ ] Pre-workout confirmation: "Edit Equipment" button returns to EquipmentSelector
+- [ ] Pre-workout confirmation: "Start Workout" enables WakeLock and enters Phase 2
 - [ ] Target selector filters exercises correctly
 - [ ] Exercise recommender displays 3–5 matching exercises
 - [ ] Reps/sets customizer updates values
