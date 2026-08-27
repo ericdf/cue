@@ -8,9 +8,10 @@ Plan your workout on screen, then run it hands-free by voice.
 
 ## What it does
 
-**Pre-workout (screen).** Declare the equipment you have, pick a focus, choose
-from exercises you can actually do, and get a sequence ordered to minimize
-equipment changes.
+**Pre-workout (screen).** Check off every piece of equipment you own (saved as
+you tap), pick a focus, choose from exercises you can actually do, set your reps
+and sets, and get a sequence ordered to minimize equipment changes — then a final
+confirmation screen before your hands are busy.
 
 **Workout (voice).** The app reads each setup aloud, waits for you, counts timed
 holds down, and runs rest periods. Say **next**, **repeat**, **done**, or
@@ -53,9 +54,12 @@ deployment** and set **Source** to **GitHub Actions**.
 
 Content lives in `public/data/`, so adding exercises needs no code changes:
 
-- `equipment.json` — categories and the items that satisfy them. Exercises
-  require a *category* (`handheld-weight-8lbs`), not a specific item, so a jug of
-  detergent substitutes for a dumbbell.
+- `equipment.json` — categories and the items that satisfy them. Every category
+  is multi-select: declare everything you own.
+- Exercise requirements come in two kinds. `type: "category"` (the default) is
+  satisfied by *any* item in that category, so a jug of detergent substitutes for
+  a dumbbell. `type: "specific"` names one exact `equipmentId` for the rare
+  exercise where no substitute works.
 - `exercises.json` — setup text, instructions, targets, and required equipment.
   Give an exercise `instructions.reps` for a rep-based set or
   `instructions.durationSeconds` for a timed hold.

@@ -1,4 +1,4 @@
-import type { Exercise } from '../types/exercise'
+import { isSpecificRequirement, type Exercise, type EquipmentRequirement } from '../types/exercise'
 
 export type Selection = Record<string, string[]>
 
@@ -6,8 +6,24 @@ export type Selection = Record<string, string[]>
 export const hasCategory = (selection: Selection, categoryId: string): boolean =>
   (selection[categoryId]?.length ?? 0) > 0
 
+/** Whether the user declared one exact piece of equipment. */
+export const hasSpecific = (selection: Selection, equipmentId: string): boolean =>
+  Object.values(selection).some((items) => items.includes(equipmentId))
+
+/**
+ * A category requirement is met by any item in that category; a specific
+ * requirement needs that exact item (a pillow will not do when a mat is named).
+ */
+export const meetsRequirement = (
+  requirement: EquipmentRequirement,
+  selection: Selection,
+): boolean =>
+  isSpecificRequirement(requirement)
+    ? hasSpecific(selection, requirement.equipmentId)
+    : hasCategory(selection, requirement.categoryId)
+
 export const hasAllRequiredEquipment = (exercise: Exercise, selection: Selection): boolean =>
-  exercise.requiredEquipment.every((req) => hasCategory(selection, req.categoryId))
+  exercise.requiredEquipment.every((req) => meetsRequirement(req, selection))
 
 export const matchesTargets = (exercise: Exercise, targets: string[]): boolean =>
   targets.length === 0 || exercise.targetMuscles.some((target) => targets.includes(target))
@@ -51,7 +67,7 @@ export const missingEquipmentOpportunities = (
   for (const exercise of exercises) {
     if (hasAllRequiredEquipment(exercise, selection)) continue
     const missing = exercise.requiredEquipment.filter(
-      (req) => !hasCategory(selection, req.categoryId),
+      (req) => !meetsRequirement(req, selection),
     )
     // Attribute the exercise to each category still standing in its way.
     for (const req of missing) {

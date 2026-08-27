@@ -19,7 +19,7 @@ interface WorkoutContextValue {
   goToPhase: (phase: Phase) => void
 
   equipmentSelected: Record<string, string[]>
-  toggleEquipment: (categoryId: string, equipmentId: string, single: boolean) => void
+  toggleEquipment: (categoryId: string, equipmentId: string) => void
 
   targetFocus: string[]
   toggleTarget: (target: string) => void
@@ -31,6 +31,9 @@ interface WorkoutContextValue {
   buildSequence: () => void
   reorderSequence: (from: number, to: number) => void
   customizeEntry: (exerciseId: string, changes: { reps?: number; sets?: number }) => void
+
+  editingFromConfirm: boolean
+  editEquipmentFromConfirm: () => void
 
   templates: WorkoutTemplate[]
   refreshTemplates: () => void
@@ -69,6 +72,8 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
   )
   const [templates, setTemplates] = useState<WorkoutTemplate[]>(() => listTemplates())
   const [savedTemplateName, setSavedTemplateName] = useState<string | null>(null)
+  /** Set when the equipment screen is opened from the confirmation step. */
+  const [editingFromConfirm, setEditingFromConfirm] = useState(false)
   const [equipmentSelected, setEquipmentSelected] = useState<Record<string, string[]>>(() =>
     loadSelectedEquipment(),
   )
@@ -96,19 +101,21 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
     saveSelectedEquipment(equipmentSelected)
   }, [equipmentSelected])
 
-  const toggleEquipment = useCallback(
-    (categoryId: string, equipmentId: string, single: boolean) => {
-      setEquipmentSelected((previous) => {
-        const current = previous[categoryId] ?? []
-        if (current.includes(equipmentId)) {
-          return { ...previous, [categoryId]: current.filter((id) => id !== equipmentId) }
-        }
-        // Radio categories hold one item; checkbox categories accumulate.
-        return { ...previous, [categoryId]: single ? [equipmentId] : [...current, equipmentId] }
-      })
-    },
-    [],
-  )
+  /**
+   * The user declares everything they own, so every category accumulates. A
+   * second tap removes the item.
+   */
+  const toggleEquipment = useCallback((categoryId: string, equipmentId: string) => {
+    setEquipmentSelected((previous) => {
+      const current = previous[categoryId] ?? []
+      return {
+        ...previous,
+        [categoryId]: current.includes(equipmentId)
+          ? current.filter((id) => id !== equipmentId)
+          : [...current, equipmentId],
+      }
+    })
+  }, [])
 
   const toggleTarget = useCallback((target: string) => {
     setTargetFocus((previous) =>
@@ -196,6 +203,11 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
     },
     [],
   )
+
+  const editEquipmentFromConfirm = useCallback(() => {
+    setEditingFromConfirm(true)
+    setPhase('equipment')
+  }, [])
 
   const refreshTemplates = useCallback(() => setTemplates(listTemplates()), [])
 
@@ -332,6 +344,7 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
     setStartTime(null)
     setFeedback(undefined)
     setSavedTemplateName(null)
+    setEditingFromConfirm(false)
     const saved = listTemplates()
     setTemplates(saved)
     setPhase(saved.length > 0 ? 'start' : 'equipment')
@@ -344,7 +357,10 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
       equipmentData,
       exercises,
       phase,
-      goToPhase: setPhase,
+      goToPhase: (next: Phase) => {
+        if (next !== 'equipment') setEditingFromConfirm(false)
+        setPhase(next)
+      },
       equipmentSelected,
       toggleEquipment,
       targetFocus,
@@ -355,6 +371,8 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
       buildSequence,
       reorderSequence,
       customizeEntry,
+      editingFromConfirm,
+      editEquipmentFromConfirm,
       templates,
       refreshTemplates,
       applyTemplate,
@@ -389,6 +407,8 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
       buildSequence,
       reorderSequence,
       customizeEntry,
+      editingFromConfirm,
+      editEquipmentFromConfirm,
       templates,
       refreshTemplates,
       applyTemplate,

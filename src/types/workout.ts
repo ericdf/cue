@@ -7,6 +7,7 @@ export type Phase =
   | 'exercises'
   | 'customize'
   | 'sequence'
+  | 'confirm'
   | 'workout'
   | 'summary'
 

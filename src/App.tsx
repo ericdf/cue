@@ -2,6 +2,7 @@ import { WorkoutProvider, useWorkoutState } from './hooks/useWorkoutState'
 import { TemplateLoader } from './components/PreWorkout/TemplateLoader'
 import { EquipmentSelector } from './components/PreWorkout/EquipmentSelector'
 import { RepSetsCustomizer } from './components/PreWorkout/RepSetsCustomizer'
+import { PreWorkoutConfirmation } from './components/PreWorkout/PreWorkoutConfirmation'
 import { TargetSelector } from './components/PreWorkout/TargetSelector'
 import { ExerciseRecommender } from './components/PreWorkout/ExerciseRecommender'
 import { SequenceOptimizer } from './components/PreWorkout/SequenceOptimizer'
@@ -10,7 +11,7 @@ import { WorkoutSummary } from './components/PostWorkout/WorkoutSummary'
 import './styles/App.css'
 
 const Router = () => {
-  const { phase, loading, loadError } = useWorkoutState()
+  const { phase, loading, loadError, editingFromConfirm } = useWorkoutState()
 
   if (loading) {
     return (
@@ -32,7 +33,7 @@ const Router = () => {
     case 'start':
       return <TemplateLoader />
     case 'equipment':
-      return <EquipmentSelector />
+      return <EquipmentSelector returnTo={editingFromConfirm ? 'confirm' : undefined} />
     case 'targets':
       return <TargetSelector />
     case 'exercises':
@@ -41,6 +42,8 @@ const Router = () => {
       return <RepSetsCustomizer />
     case 'sequence':
       return <SequenceOptimizer />
+    case 'confirm':
+      return <PreWorkoutConfirmation />
     case 'workout':
       return <VoiceController />
     case 'summary':

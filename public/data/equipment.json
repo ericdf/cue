@@ -4,13 +4,13 @@
       "id": "padded-knee-surface",
       "name": "Padded Surface for Floor Work",
       "description": "Mat, pillow, or equivalent",
-      "selectType": "radio"
+      "selectType": "checkbox"
     },
     {
       "id": "handheld-weight-8lbs",
       "name": "8 lb Handheld Weight",
       "description": "Dumbbell, medicine ball, or household item",
-      "selectType": "radio"
+      "selectType": "checkbox"
     },
     {
       "id": "suspension-trainer",
@@ -28,7 +28,7 @@
       "id": "resistance-band",
       "name": "Resistance Band",
       "description": "Light, medium, or heavy tension",
-      "selectType": "radio"
+      "selectType": "checkbox"
     }
   ],
   "equipment": [

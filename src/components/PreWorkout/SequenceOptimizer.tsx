@@ -2,7 +2,7 @@ import { useWorkoutState } from '../../hooks/useWorkoutState'
 import { describePrescription } from '../../types/exercise'
 
 export const SequenceOptimizer = () => {
-  const { sequence, exerciseById, reorderSequence, goToPhase, startWorkout } = useWorkoutState()
+  const { sequence, exerciseById, reorderSequence, goToPhase } = useWorkoutState()
 
   const transitionCount = sequence.filter((entry) => entry.transitionNote).length
 
@@ -67,8 +67,12 @@ export const SequenceOptimizer = () => {
           <button type="button" className="button" onClick={() => goToPhase('customize')}>
             Back
           </button>
-          <button type="button" className="button button--primary" onClick={startWorkout}>
-            Start Workout
+          <button
+            type="button"
+            className="button button--primary"
+            onClick={() => goToPhase('confirm')}
+          >
+            Review
           </button>
         </div>
       </footer>
