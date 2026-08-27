@@ -108,12 +108,46 @@ System optimizes exercise order to minimize setup transitions.
 1. Group exercises by equipment configuration (e.g., "suspension trainer at mid-height")
 2. Compute transition "cost" between groups (based on `adjustmentCost` in equipment schema)
 3. Reorder to minimize total cost
-4. Display proposed sequence with transition notes:
-   ```
-   [Bird Dog] → [Half-Moon Hinge]     (same floor setup)
-   ⚠ ADJUST SUSPENSION TRAINER MID → HIGH
-   [Suspension Row] → [Suspension Fly]  (same config)
-   ```
+4. Display proposed sequence with detailed equipment and transition info:
+
+**Example UI:**
+```
+Your sequence
+Ordered to minimize equipment changes.
+
+1   Bird Dog
+    6 reps each side · 2 sets
+    🛡️ Padded Surface (has: Pillow)                          ↑ ↓
+
+    ✓ No change needed
+
+2   Half-Moon Hinge
+    6 reps each side · 2 sets
+    (optional: Padded Surface for reaching target)
+                                                             ↑ ↓
+
+    ⚠️ ADJUST: Suspension Trainer → Mid Height
+
+3   Suspension Row
+    6 reps × 2 sets
+    🪢 Suspension Trainer @ Mid Height (has it)             ↑ ↓
+
+    ✓ No change needed
+
+4   Suspension Fly
+    6 reps × 2 sets
+    🪢 Suspension Trainer @ Mid Height (has it)             ↑ ↓
+```
+
+**UI Details:**
+- Each exercise shows:
+  - Name, reps/sets
+  - Required equipment (with checkmark if user has it, warning if not)
+  - Equipment configuration (if applicable)
+  - Transition alert (if setup change needed after this exercise)
+- Arrows (↑ ↓) allow manual reordering
+- User can accept proposed order or manually drag/reorder
+
 5. User can **manually reorder** by dragging or tapping arrows, or accept proposed order
 
 ### 1.6 Confirmation & Lock-In
