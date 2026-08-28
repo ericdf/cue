@@ -276,12 +276,15 @@ body {
   background: color-mix(in srgb, var(--accent) 10%, var(--surface));
 }
 
+/* Illustrations are tall portraits and photos are square, so contain rather
+   than cover — cropping a portrait to 16:9 cuts the exercise out of frame. */
 .exercise-card__image {
   width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
+  height: 11rem;
+  object-fit: contain;
   display: block;
-  background: var(--surface-raised);
+  background: #fff;
+  padding: 0.35rem 0;
 }
 
 .exercise-card__body {
